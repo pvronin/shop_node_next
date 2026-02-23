@@ -25,6 +25,213 @@ app.get('/api/users', async (req, res) => {
     }
 });
 
+app.put('/api/users/me', authenticateJWT, async (req, res) => {
+    try {
+        // 1. چک کن کاربر وجود داره
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'کاربر یافت نشد'
+            });
+        }
+
+        // 2. فقط فیلدهایی که فرستاده شدن رو آپدیت کن
+        const updateData = {};
+
+        if (req.body.first_name !== undefined) {
+            updateData.first_name = req.body.first_name;
+        }
+        if (req.body.last_name !== undefined) {
+            updateData.last_name = req.body.last_name;
+        }
+        if (req.body.username !== undefined) {
+            updateData.username = req.body.username;
+        }
+        if (req.body.email !== undefined) {
+            updateData.email = req.body.email;
+        }
+        if (req.body.phone !== undefined) {
+            updateData.phone = req.body.phone;
+        }
+
+        // 3. اگه هیچ فیلدی برای آپدیت نبود
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'هیچ فیلدی برای آپدیت ارسال نشده'
+            });
+        }
+
+        // 4. آپدیت با await و ذخیره نتیجه
+        const updatedUser = await prisma.users.update({
+            where: { id: req.user.id },
+            data: updateData,
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                first_name: true,
+                last_name: true,
+                phone: true,
+                role: true
+            }
+        });
+
+        // 5. پاسخ موفق
+        res.status(200).json({
+            success: true,
+            message: 'پروفایل با موفقیت به‌روزرسانی شد',
+            user: updatedUser
+        });
+
+    } catch (error) {
+        console.error('Update user error:', error);
+
+        // خطای تکراری بودن username یا email
+        if (error.code === 'P2002') {
+            return res.status(400).json({
+                success: false,
+                message: 'این نام کاربری یا ایمیل قبلاً استفاده شده'
+            });
+        }
+
+        res.status(500).json({
+            success: false,
+            message: 'خطا در به‌روزرسانی پروفایل'
+        });
+    }
+});
+
+// backend/routes/auth.js یا همون index.js
+app.post('/api/users/me/change-password', authenticateJWT, async (req, res) => {
+    try {
+        const { current_password, new_password, confirm_password } = req.body;
+
+        // 1. اعتبارسنجی اولیه
+        if (!current_password || !new_password || !confirm_password) {
+            return res.status(400).json({
+                success: false,
+                message: 'تمام فیلدها الزامی هستند'
+            });
+        }
+
+        // 2. بررسی مطابقت رمز جدید و تکرار
+        if (new_password !== confirm_password) {
+            return res.status(400).json({
+                success: false,
+                message: 'رمز عبور جدید و تکرار آن مطابقت ندارند'
+            });
+        }
+
+        // 3. بررسی حداقل طول رمز
+        if (new_password.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: 'رمز عبور باید حداقل ۸ کاراکتر باشد'
+            });
+        }
+
+        // 4. گرفتن کاربر از دیتابیس (با رمز فعلی)
+        const user = await prisma.users.findUnique({
+            where: { id: req.user.id }
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'کاربر یافت نشد'
+            });
+        }
+
+        // 5. بررسی رمز فعلی
+        const isValid = await bcrypt.compare(current_password, user.password_hash);
+        if (!isValid) {
+            return res.status(401).json({
+                success: false,
+                message: 'رمز عبور فعلی اشتباه است'
+            });
+        }
+
+        // 6. رمز جدید با رمز فعلی یکی نباشه (اختیاری)
+        const isSameAsOld = await bcrypt.compare(new_password, user.password_hash);
+        if (isSameAsOld) {
+            return res.status(400).json({
+                success: false,
+                message: 'رمز جدید باید با رمز قبلی متفاوت باشد'
+            });
+        }
+
+        // 7. هش کردن رمز جدید
+        const salt = await bcrypt.genSalt(10);
+        const newPasswordHash = await bcrypt.hash(new_password, salt);
+
+        // 8. آپدیت در دیتابیس
+        await prisma.users.update({
+            where: { id: req.user.id },
+            data: {
+                password_hash: newPasswordHash
+            }
+        });
+
+        // 9. (اختیاری) حذف توکن‌های قبلی - کاربر باید دوباره لاگین کنه
+        // اگه توکن‌های قدیمی رو تو دیتابیس ذخیره میکنی، پاکشون کن
+
+        res.status(200).json({
+            success: true,
+            message: 'رمز عبور با موفقیت تغییر کرد'
+        });
+
+    } catch (error) {
+        console.error('Change password error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'خطا در تغییر رمز عبور'
+        });
+    }
+});
+
+app.get('/api/users/me', authenticateJWT, async (req, res) => {
+    try {
+        // req.user از middleware می‌آید → شامل id کاربر است
+        const user = await prisma.users.findUnique({
+            where: { id: req.user.id },
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                first_name: true,
+                last_name: true,
+                role: true,
+                phone: true,    // اگر فیلد role داری
+                created_at: true,
+                is_verified: true
+                // last_login_at: true,
+                // هر فیلد دیگری که می‌خوای برگردونی (حساس‌ها مثل password_hash رو هرگز!)
+                // مثلاً: avatar_url: true, phone: true, ...
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'کاربر یافت نشد'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            user
+        });
+    } catch (error) {
+        console.error('Get me error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'خطای سرور',
+            ...(process.env.NODE_ENV === 'development' && { error: error.message })
+        });
+    }
+});
+
 app.get('/api/users/:id', async (req, res) => {
     const userid = req.params.id
     const user = await prisma.users.findUnique({
@@ -37,7 +244,12 @@ app.get('/api/users/:id', async (req, res) => {
     res.json(user)
 })
 
+app.put('/api/users', async (req, res) => {
+    const userid = req.body.id
+    prisma.users.update({
 
+    })
+})
 app.get('/api/products', async (req, res) => {
     try {
         const {
@@ -118,6 +330,9 @@ app.get('/api/products', async (req, res) => {
         res.status(500).json({ error: 'خطای سرور داخلی' });
     }
 });
+
+
+
 app.get('/api/products/:id', async (req, res) => {
     const productId = parseInt(req.params.id);
 
@@ -387,45 +602,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 // در فایل اصلی روت‌ها (مثلاً بعد از login و register)
 
-app.get('/api/users/me', authenticateJWT, async (req, res) => {
-    try {
-        // req.user از middleware می‌آید → شامل id کاربر است
-        const user = await prisma.users.findUnique({
-            where: { id: req.user.id },
-            select: {
-                id: true,
-                username: true,
-                email: true,
-                first_name: true,
-                last_name: true,
-                role: true,          // اگر فیلد role داری
-                created_at: true,
-                last_login_at: true,
-                // هر فیلد دیگری که می‌خوای برگردونی (حساس‌ها مثل password_hash رو هرگز!)
-                // مثلاً: avatar_url: true, phone: true, ...
-            }
-        });
 
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: 'کاربر یافت نشد'
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            user
-        });
-    } catch (error) {
-        console.error('Get me error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'خطای سرور',
-            ...(process.env.NODE_ENV === 'development' && { error: error.message })
-        });
-    }
-});
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
