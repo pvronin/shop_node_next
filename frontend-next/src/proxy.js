@@ -1,8 +1,8 @@
 //Proxy.js
 import { NextRequest, NextResponse } from 'next/server';
 
-const publicPaths = ['/login', '/register', '/forgot-password'];
-// مسیرهایی که کاربران لاگین‌نشده می‌تونن ببینن
+// const publicPaths = ['/login', '/register', '/forgot-password'];
+// // مسیرهایی که کاربران لاگین‌نشده می‌تونن ببینن
 
 const authPaths = ['/login', '/register'];
 // مسیرهایی که کاربران لاگین‌شده نباید بتونن ببینن (ریدایرکت می‌شن)
@@ -16,7 +16,7 @@ export function proxy(request) {
     // اگر کاربر لاگین کرده و رفت به صفحه لاگین یا ثبت‌نام → ریدایرکت به داشبورد
     if (authPaths.some(path => pathname.startsWith(path)) && hasAccessToken) {
         return NextResponse.redirect(new URL('/dashboard', request.url));
-        // یا می‌تونی به صفحه اصلی ریدایرکت کنی:
+
         // return NextResponse.redirect(new URL('/', request.url));
     }
 

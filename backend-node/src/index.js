@@ -202,14 +202,26 @@ app.get('/api/users/me', authenticateJWT, async (req, res) => {
                 first_name: true,
                 last_name: true,
                 role: true,
-                phone: true,    // اگر فیلد role داری
+                phone: true,
                 created_at: true,
                 is_verified: true
+
                 // last_login_at: true,
                 // هر فیلد دیگری که می‌خوای برگردونی (حساس‌ها مثل password_hash رو هرگز!)
                 // مثلاً: avatar_url: true, phone: true, ...
             }
         });
+        const addresses = await prisma.addresses.findMany({
+            where: { user_id: req.user.id },
+            select: {
+                label: true,
+                province: true,
+                city: true,
+                postal_code: true,
+                address_line: true,
+                is_default: true
+            }
+        })
 
         if (!user) {
             return res.status(404).json({
@@ -220,7 +232,8 @@ app.get('/api/users/me', authenticateJWT, async (req, res) => {
 
         res.status(200).json({
             success: true,
-            user
+            user,
+            addresses
         });
     } catch (error) {
         console.error('Get me error:', error);
@@ -231,6 +244,65 @@ app.get('/api/users/me', authenticateJWT, async (req, res) => {
         });
     }
 });
+
+app.post('/api/users/me/addresses', authenticateJWT, async (req, res) => {
+    try {
+        const { id } = req.user
+        const { label, province, city, postal_code, address_line, is_default } = req.body
+        await prisma.addresses.create({
+            data: {
+                label: label,
+                province: province,
+                city: city,
+                postal_code: postal_code,
+                address_line: address_line,
+                user_id: id,
+                is_default: is_default
+            }
+        })
+
+        res.status(200).json({
+            success: true,
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error
+        })
+    }
+
+})
+
+app.delete('/api/users/me/addresses/:addressId', authenticateJWT, async (req, res) => {
+    try {
+        const { id } = req.user
+        const { addressId } = req.params
+        await prisma.addresses.delete({
+            where: {
+                id: addressId,
+            }
+        })
+
+        res.status(200).json({
+            success: true,
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+
+})
+
+app.put('/api/users/me/:addressid', authenticateJWT, async (req, res) => {
+    prisma.addresses.findUnique({
+        where: {
+
+        },
+
+    })
+})
 
 app.get('/api/users/:id', async (req, res) => {
     const userid = req.params.id
@@ -260,9 +332,8 @@ app.get('/api/products', async (req, res) => {
             minPrice = '',
             maxPrice = '',
             minRating = '',
-            ordering = ''          // ← حالا از فرانت می‌آید
+            ordering = ''
         } = req.query;
-
 
         const where = {};
 
@@ -280,18 +351,14 @@ app.get('/api/products', async (req, res) => {
             if (maxPrice) where.price.lte = Number(maxPrice);
         }
 
-        // جستجو
         if (search) {
             where.OR = [
                 { title: { contains: search, mode: 'insensitive' } },
-                // اگر description داری اضافه کن:
-                // { description: { contains: search, mode: 'insensitive' } }
             ];
         }
 
-        // مرتب‌سازی (پشتیبانی از فرمت Django-like: -price یعنی نزولی)
-        let orderBy = { id: 'desc' }; // پیش‌فرض
-
+        // مرتب‌سازی
+        let orderBy = { id: 'desc' };
         if (ordering) {
             if (ordering.startsWith('-')) {
                 const field = ordering.slice(1);
@@ -302,23 +369,70 @@ app.get('/api/products', async (req, res) => {
         }
 
         const pageNum = Math.max(1, Number(page));
-        const limitNum = Math.min(50, Math.max(1, Number(limit))); // امنیت
+        const limitNum = Math.min(12, Math.max(1, Number(limit)));
         const skip = (pageNum - 1) * limitNum;
 
+        // دریافت محصولات به همراه تخفیف‌های فعال
         const [products, total] = await Promise.all([
             prisma.products.findMany({
                 where,
                 orderBy,
                 skip,
                 take: limitNum,
+                include: {
+                    discounts: {
+                        where: {
+                            is_active: true,
+                            start_date: { lte: new Date() },
+                            end_date: { gte: new Date() }
+                        },
+                        take: 1, // فقط اولین تخفیف فعال (اگه چندتا داشته باشه)
+                        orderBy: { percent: 'desc' } // بزرگترین درصد تخفیف
+                    },
+                    productcomments: {
+                        select: {
+                            id: true,
+                            rating: true  // اگر میانگین امتیاز هم نیاز داری
+                        }
+                    }
+                }
             }),
             prisma.products.count({ where })
         ]);
 
+        // پردازش محصولات و اضافه کردن قیمت با تخفیف
+        const processedProducts = products.map(product => {
+            let discountedPrice
+            let discountPercent
+            let savings
+            // محاسبه تعداد نظرات
+            const reviewsCount = product.productcomments.length;
+
+            // اگه تخفیف فعال داره
+            if (product.discounts && product.discounts.length > 0) {
+                const activeDiscount = product.discounts[0];
+                discountPercent = activeDiscount.percent;
+                const discountAmount = product.price * (discountPercent / 100);
+                discountedPrice = Math.round(product.price - discountAmount);
+                savings = Math.round(discountAmount);
+            }
+
+            // حذف discounts از آبجکت نهایی (اگه نمی‌خوای بفرستی)
+            const { productcomments, discounts, ...productWithoutDiscounts } = product;
+
+            return {
+                ...productWithoutDiscounts,
+                discounted_price: discountedPrice,
+                discount_percent: discountPercent,
+                savings: savings,
+                reviews_count: reviewsCount,
+            };
+        });
+
         res.json({
-            products,
+            products: processedProducts,
             pagination: {
-                totalcount: total,          // ← دقیقاً هم‌نامی با چیزی که فرانت انتظار داره
+                totalcount: total,
                 page: pageNum,
                 limit: limitNum,
                 totalPages: Math.ceil(total / limitNum) || 1
@@ -331,7 +445,112 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
+app.get('/api/products/discounted', async (req, res) => {
+    try {
+        const {
+            page = '1',
+            limit = '12',
+            minRating = '',
+            ordering = ''
+        } = req.query;
 
+        const where = {
+            discounts: {
+                some: {  // ← فقط شرط فیلتر اینجا می‌مونه (بدون orderBy)
+                    is_active: true,
+                    start_date: { lte: new Date() },
+                    end_date: { gte: new Date() }
+                }
+            }
+        };
+
+        if (minRating) {
+            where.rating = { gte: Number(minRating) };
+        }
+
+        let orderBy = { id: 'desc' };
+        if (ordering) {
+            if (ordering.startsWith('-')) {
+                const field = ordering.slice(1);
+                orderBy = { [field]: 'desc' };
+            } else {
+                orderBy = { [ordering]: 'asc' };
+            }
+        }
+
+        const pageNum = Math.max(1, Number(page));
+        const limitNum = Math.min(12, Math.max(1, Number(limit)));
+        const skip = (pageNum - 1) * limitNum;
+
+        const [products, total] = await Promise.all([
+            prisma.products.findMany({
+                where,
+                orderBy,
+                skip,
+                take: limitNum,
+                include: {
+                    discounts: {
+                        where: {
+                            is_active: true,
+                            start_date: { lte: new Date() },
+                            end_date: { gte: new Date() }
+                        },
+                        take: 1,                    // ← فقط یک تخفیف (بهترین)
+                        orderBy: { percent: 'desc' } // ← orderBy اینجا مجاز است!
+                    },
+                    productcomments: {
+                        select: {
+                            id: true,
+                            rating: true  // اگر میانگین امتیاز هم نیاز داری
+                        }
+                    }
+                }
+            }),
+            prisma.products.count({ where })
+        ]);
+
+        // پردازش محصولات (بقیه کدت تقریباً درسته، فقط این قسمت رو چک کن)
+        const processedProducts = products.map(product => {
+            let discountedPrice = null;
+            let discountPercent = null;
+            let savings = null;
+
+            // محاسبه تعداد نظرات (اگر include کردی)
+            const reviewsCount = product.productcomments?.length || 0;
+
+            if (product.discounts?.length > 0) {
+                const activeDiscount = product.discounts[0];
+                discountPercent = activeDiscount.percent;
+                const discountAmount = product.price * (discountPercent / 100);
+                discountedPrice = Math.round(product.price - discountAmount);
+                savings = Math.round(discountAmount);
+            }
+
+            const { discounts, productcomments, ...productWithoutRelations } = product;
+
+            return {
+                ...productWithoutRelations,
+                discounted_price: discountedPrice,
+                discount_percent: discountPercent,
+                savings,
+                reviews_count: reviewsCount,
+            };
+        });
+
+        res.json({
+            products: processedProducts,
+            pagination: {
+                totalcount: total,
+                page: pageNum,
+                limit: limitNum,
+                totalPages: Math.ceil(total / limitNum) || 1
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'خطای سرور داخلی' });
+    }
+});
 
 app.get('/api/products/:id', async (req, res) => {
     const productId = parseInt(req.params.id);
@@ -387,6 +606,7 @@ app.get('/api/products/:id', async (req, res) => {
         res.status(500).json({ error: 'خطای سرور' });
     }
 });
+
 
 
 app.get('/api/discounts', async (req, res) => {

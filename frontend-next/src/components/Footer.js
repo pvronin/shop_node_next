@@ -2,7 +2,7 @@
 export default function Footer() {
   return (
     <footer className="bg-white border-t border-gray-200 pt-16 pb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="ml-6 col-span-1 md:col-span-1">
             <span className="text-xl font-black text-emerald-600">NEXTSHOP</span>
@@ -31,7 +31,7 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-gray-900 mb-4">خبرنامه</h4>
             <div className="flex gap-2">
-              <input type="email" placeholder="ایمیل شما" className="bg-gray-100 border-none rounded-lg px-4 py-2 text-sm w-full focus:ring-2 focus:ring-emerald-500" />
+              <input type="email" placeholder="ایمیل شما" className="bg-gray-100 border-none rounded-lg px-4 py-2 text-sm w-full outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
               <button className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition">ثبت</button>
             </div>
           </div>

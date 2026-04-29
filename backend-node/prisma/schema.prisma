@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["partialIndexes"]
 }
 
 datasource db {
@@ -65,16 +66,33 @@ model products {
 }
 
 model users {
-  id            Int       @id @default(autoincrement())
-  username      String?   @unique @db.VarChar(50)
-  email         String    @unique @db.VarChar(255)
-  password_hash String    @db.VarChar(255)
-  first_name    String?   @db.VarChar(100)
-  last_name     String?   @db.VarChar(100)
-  phone         String?   @db.VarChar(20)
-  is_verified   Boolean   @default(false)
-  role          String    @default("user") @db.VarChar(30)
-  last_login_at DateTime? @db.Timestamptz(6)
-  created_at    DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime  @default(now()) @db.Timestamptz(6)
+  id            Int        @id @default(autoincrement())
+  username      String?    @unique @db.VarChar(50)
+  email         String     @unique @db.VarChar(255)
+  password_hash String     @db.VarChar(255)
+  first_name    String?    @db.VarChar(100)
+  last_name     String?    @db.VarChar(100)
+  phone         String?    @db.VarChar(20)
+  is_verified   Boolean    @default(false)
+  role          String     @default("user") @db.VarChar(30)
+  last_login_at DateTime?  @db.Timestamptz(6)
+  created_at    DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime   @default(now()) @db.Timestamptz(6)
+  addresses     addresses?
+}
+
+model addresses {
+  id           Int      @id @default(autoincrement())
+  user_id      Int      @unique(map: "one_default_address_per_user", where: raw("(is_default = true)"))
+  label        String?  @db.VarChar(100)
+  province     String   @db.VarChar(100)
+  city         String   @db.VarChar(100)
+  postal_code  String   @db.VarChar(20)
+  address_line String
+  is_default   Boolean  @default(false)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @updatedAt @db.Timestamptz(6)
+  user         users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
 }

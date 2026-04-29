@@ -3,6 +3,12 @@ import { createContext, useContext, useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 
+
+
+const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API;
+
+
+
 const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
@@ -13,7 +19,7 @@ export function AuthProvider({ children }) {
     // تابع کمکی برای گرفتن اطلاعات کاربر با توکن
     const fetchUser = async (token) => {
         try {
-            const res = await fetch("http://127.0.0.1:8000/api/users/me", {
+            const res = await fetch(`${apiUrl}/api/users/me`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -73,7 +79,7 @@ export function AuthProvider({ children }) {
 
     const login = async (email, password) => {
         try {
-            const res = await fetch("http://127.0.0.1:8000/api/auth/login", {
+            const res = await fetch(`${apiUrl}/api/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
@@ -84,14 +90,14 @@ export function AuthProvider({ children }) {
                 throw new Error(errData.message || "خطا در ورود");
             }
 
-            const { token: access } = await res.json();
+            const { token } = await res.json();
 
-            Cookies.set("access_token", access, { expires: 1, secure: true, sameSite: "lax" });
+            Cookies.set("access_token", token, { expires: 1, secure: true, sameSite: "lax" });
 
 
             // مهم: بعد از لاگین موفق، اطلاعات کاربر رو از /me بگیر
-            const userData = await fetchUser(access);
-            if (userData) setUser(userData);
+            const data = await fetchUser(token);
+            if (data) setUser(data.user);
 
             return { success: true };
         } catch (err) {

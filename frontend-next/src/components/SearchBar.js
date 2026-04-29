@@ -29,9 +29,16 @@ export default function SearchBar() {
                 setShowResults(false);
             }
         };
+
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        document.addEventListener("touchstart", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("touchstart", handleClickOutside);
+        };
     }, []);
+
 
     // جستجوی لحظه‌ای
     useEffect(() => {
@@ -39,7 +46,7 @@ export default function SearchBar() {
             if (term.length > 2) {
                 const res = await fetch(`http://127.0.0.1:8000/api/products/?search=${term}&limit=${isMobile ? 4 : 8}`);
                 const data = await res.json();
-                setResults(data.results || []);
+                setResults(data.products || []);
                 setShowResults(true);
             } else {
                 setResults([]);
@@ -68,7 +75,7 @@ export default function SearchBar() {
                     value={term}
                     onChange={(e) => setTerm(e.target.value)}
                     placeholder={isMobile ? "جستجو..." : "جستجوی سریع..."}
-                    className="w-full px-4 py-2.5 md:py-2 text-sm md:text-base border border-gray-300 rounded-xl md:rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                    className="w-full px-4 py-2.5 md:py-2 text-sm md:text-base border border-gray-300 rounded-xl md:rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                 />
                 <button
                     type="submit"
@@ -82,8 +89,8 @@ export default function SearchBar() {
 
             {/* لیست نتایج */}
             {showResults && results.length > 0 && (
-                <div className="absolute z-50 w-full mt-1 md:mt-2 bg-white border rounded-lg md:rounded-xl shadow-xl overflow-hidden max-h-80 md:max-h-96 overflow-y-auto">
-                    <div className="p-2 bg-gray-50 border-b">
+                <div className="absolute z-50 w-full mt-1 md:mt-2 bg-white border border-blue-100 rounded-lg md:rounded-xl shadow-xl overflow-hidden max-h-80 md:max-h-96 overflow-y-auto">
+                    <div className="sticky top-0 p-2 bg-gray-50 border-b border-b-blue-700">
                         <p className="text-xs text-gray-500">
                             {results.length} نتیجه برای "{term}"
                         </p>
@@ -93,27 +100,30 @@ export default function SearchBar() {
                             key={product.id}
                             href={`/product/${product.id}`}
                             onClick={() => setShowResults(false)}
-                            className="flex items-center gap-2 md:gap-3 p-2 md:p-3 hover:bg-gray-50 border-b last:border-0 transition-colors"
+                            className="flex items-center gap-2 md:gap-3 p-2 md:p-3 hover:bg-gray-100 border-b border-blue-50 last:border-0 transition-colors line-clamp-1"
                         >
                             <img
                                 src={product.thumbnail || "/altproduct.jpg"}
                                 alt={product.title}
                                 className="w-10 h-10 md:w-14 md:h-14 object-cover rounded-lg shadow-sm flex-shrink-0"
                             />
-                            <div className="flex-1 min-w-0">
-                                <span className="text-xs md:text-sm font-medium text-gray-800 line-clamp-1">
-                                    {product.title}
-                                </span>
-                                <div className="flex items-center justify-between mt-1">
+                            <div className="flex justify-between flex-1 min-w-0">
+                                <div>
+                                    <span className="text-xs md:text-sm font-medium text-gray-800 line-clamp-1">
+                                        {product.title}
+                                    </span>
                                     <span className="text-xs text-blue-600 font-bold">
                                         {Number(product.price).toLocaleString()} تومان
                                     </span>
+                                </div>
+
+                                <div className="flex items-center justify-between mt-1">
                                     {product.stock > 0 ? (
-                                        <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                        <span className="text-xs text-emerald-600 bg-emerald-100 px-2 py-0.5 lg:px-6 lg:py-2.5 rounded-full">
                                             موجود
                                         </span>
                                     ) : (
-                                        <span className="text-xs text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
+                                        <span className="text-xs text-red-600 bg-red-100 px-2 py-0.5 lg:px-5.5 lg:py-2.5 rounded-full">
                                             ناموجود
                                         </span>
                                     )}
@@ -123,7 +133,7 @@ export default function SearchBar() {
                     ))}
                     <button
                         onClick={onSearchSubmit}
-                        className="w-full p-3 text-center text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 font-medium border-t"
+                        className="sticky bottom-0 w-full p-3 text-center text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 font-medium border-t"
                     >
                         نمایش همه نتایج ({results.length})
                     </button>

@@ -7,24 +7,24 @@ export const useCartStore = create(
             cart: [],
 
             // افزودن به سبد
-            addToCart: (product) => {
+            addToCart: (product, quantity) => {
                 const cart = get().cart;
                 const existingItem = cart.find((item) => item.id === product.id);
 
                 if (existingItem) {
-                    // اگر محصول بود، فقط تعداد را زیاد کن
+
                     set({
                         cart: cart.map((item) =>
-                            item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+                            item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
                         ),
                     });
                 } else {
-                    // اگر محصول جدید بود، با تعداد ۱ اضافه کن
-                    set({ cart: [...cart, { ...product, quantity: 1 }] });
+                    // اگر محصول جدید بود
+                    set({ cart: [...cart, { ...product, quantity: quantity }] });
                 }
             },
 
-            // این را داخل استور اضافه کن:
+
             decreaseQuantity: (productId) => {
                 const cart = get().cart;
                 const existingItem = cart.find(item => item.id === productId);
@@ -50,11 +50,10 @@ export const useCartStore = create(
 
             // محاسبه قیمت کل
             getTotalPrice: () =>
-                get().cart.reduce((total, item) => total + item.price * item.quantity, 0),
+                get().cart.reduce((total, item) => total + (item.discounted_price ? item.discounted_price : item.price) * item.quantity, 0),
         }),
         {
             name: 'shopping-cart', // نام کلید در LocalStorage
         }
     )
 );
-    

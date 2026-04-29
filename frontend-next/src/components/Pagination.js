@@ -77,7 +77,7 @@ export default function Pagination({ currentPage, totalCount, pageSize = 12 }) {
                         <span className="font-bold">{totalPages.toLocaleString('fa-IR')}</span>
                     </div>
                     <div className="bg-emerald-50 text-emerald-700 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-emerald-100 text-xs md:text-sm">
-                        <span className="font-medium">تعداد کل:</span>
+                        <span className="font-medium">تعداد کل :</span>
                         <span className="font-bold mr-1 md:mr-2">{totalCount.toLocaleString('fa-IR')}</span>
                         <span>محصول</span>
                     </div>
@@ -88,7 +88,7 @@ export default function Pagination({ currentPage, totalCount, pageSize = 12 }) {
                     {/* دکمه صفحه اول و قبلی */}
                     <div className="flex items-center gap-1 md:gap-3">
                         {/* دکمه صفحه اول - مخفی در موبایل */}
-                        {!isMobile && (
+                        {/* {!isMobile && (
                             <button
                                 onClick={() => handlePageChange(1)}
                                 disabled={currentPage <= 1 || isChanging}
@@ -99,7 +99,7 @@ export default function Pagination({ currentPage, totalCount, pageSize = 12 }) {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                                 </svg>
                             </button>
-                        )}
+                        )} */}
 
                         {/* دکمه قبلی */}
                         <button
@@ -179,7 +179,7 @@ export default function Pagination({ currentPage, totalCount, pageSize = 12 }) {
                         </button>
 
                         {/* دکمه صفحه آخر - مخفی در موبایل */}
-                        {!isMobile && (
+                        {/* {!isMobile && (
                             <button
                                 onClick={() => handlePageChange(totalPages)}
                                 disabled={currentPage >= totalPages || isChanging}
@@ -190,7 +190,7 @@ export default function Pagination({ currentPage, totalCount, pageSize = 12 }) {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
                                 </svg>
                             </button>
-                        )}
+                        )} */}
                     </div>
                 </div>
 
@@ -211,7 +211,7 @@ export default function Pagination({ currentPage, totalCount, pageSize = 12 }) {
                                         }
                                     }
                                 }}
-                                className="w-26 md:w-28 px-3 md:px-4 py-2 md:py-2.5 rounded-lg md:rounded-xl border border-gray-300 placeholder:text-xs focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-center font-bold text-sm md:text-base"
+                                className="w-26 md:w-32 px-3 pl-4 md:px-4 md:pl-7 py-2 md:py-2.5 rounded-lg md:rounded-xl border border-gray-300 placeholder:text-xs focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-center font-bold text-sm md:text-base"
                                 placeholder="شماره صفحه"
                             />
                             <div className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">

@@ -1,10 +1,9 @@
+// app/layout.tsx
 import localFont from "next/font/local";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { AuthProvider } from "@/context/AuthContext";
 
-// ۲. تعریف فونت محلی وزیر
+// main colors: blue-600, emerald-600 in tailwind
 const vazir = localFont({
     src: [
         { path: "../fonts/Vazir-Thin-FD-WOL.woff2", weight: "300" },
@@ -23,15 +22,7 @@ export default function RootLayout({ children }) {
     return (
         <html lang="fa" dir="rtl">
             <body className={`${vazir.className} antialiased`}>
-                <AuthProvider>
-                    <Header />
-
-                    <main className="container mx-auto p-4">
-                        {children}
-                    </main>
-
-                    <Footer />
-                </AuthProvider>
+                <AuthProvider>{children}</AuthProvider>
             </body>
         </html>
     );

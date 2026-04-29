@@ -1,0 +1,74 @@
+import Link from "next/link";
+
+const NavItem = ({ href, icon: Icon, label, group }) => {
+    return (
+        <div className="relative group">
+            <Link
+                href={href}
+                className="hover:text-emerald-600 transition flex items-center gap-1.5 px-2 py-1.5"
+            >
+                <Icon className="text-blue-600 text-lg transition-colors duration-200 group-hover:text-emerald-600" />
+                <span className="font-medium">{label}</span>
+            </Link>
+
+            {group === "categories" && (
+                <div
+                    className="absolute opacity-0 group-hover:opacity-100 scale-0 group-hover:scale-100
+                    left-0 top-full mt-1.5 p-3 w-full shadow-lg rounded-md
+                  bg-white/80 backdrop-blur-md
+                    transition-all duration-400 ease-in-out border border-blue-100 z-10 origin-top"
+                >
+
+                    <ul className="space-y-1.5 text-sm">
+                        <li>
+                            <Link
+                                href="/categories/1"
+                                className="block rounded-md px-2.5 py-1 hover:bg-emerald-50 hover:text-emerald-600 transition"
+                            >
+                                لوازم خانگی
+                            </Link>
+                        </li>
+                        <hr className="text-gray-200" />
+                        <li>
+                            <Link
+                                href="/categories/2"
+                                className="block rounded-md px-2.5 py-1 hover:bg-emerald-50 hover:text-emerald-600 transition"
+                            >
+                                دیجیتال و تکنولوژی
+                            </Link>
+                        </li>
+                        <hr className="text-gray-200" />
+                        <li>
+                            <Link
+                                href="/categories/3"
+                                className="block rounded-md px-2.5 py-1 hover:bg-emerald-50 hover:text-emerald-600 transition"
+                            >
+                                مد و پوشاک
+                            </Link>
+                        </li>
+                        <hr className="text-gray-200" />
+                        <li>
+                            <Link
+                                href="/categories/4"
+                                className="block rounded-md px-2.5 py-1 hover:bg-emerald-50 hover:text-emerald-600 transition"
+                            >
+                                ورزشی و سلامت
+                            </Link>
+                        </li>
+                        <hr className="text-gray-200" />
+                        <li>
+                            <Link
+                                href="/categories/5"
+                                className="block rounded-md px-2.5 py-1 hover:bg-emerald-50 hover:text-emerald-600 transition"
+                            >
+                                کتاب و هنر
+                            </Link>
+                        </li>
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default NavItem;
