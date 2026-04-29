@@ -1,6 +1,7 @@
+import { memo } from "react";
 import Comment from "./Comment";
 
-export default function CommentsSection({ comments }) {
+const CommentsSection = memo(({ comments = [] }) => {
     return (
         <div className="bg-white p-8 rounded-2xl shadow-sm mt-12">
 
@@ -15,4 +16,7 @@ export default function CommentsSection({ comments }) {
             )}
         </div>
     );
-}
+})
+
+CommentsSection.displayName = 'CommentsSection';
+export default CommentsSection;

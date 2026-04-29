@@ -1,9 +1,9 @@
+import { memo } from "react";
 import RatingStars from "./RatingStars";
 
-
-export default function Comment({ comment, key }) {
+const Comment = memo(({ comment }) => {
     return (
-        <div key={key} className="border-b border-b-gray-200 last:border-0 pb-6 group">
+        <div className="border-b border-b-gray-200 last:border-0 pb-6 group">
             <div className="flex justify-between items-center mb-2">
                 <span className="font-bold text-gray-700">{comment.reviewer_name}</span>
                 <div className="flex text-yellow-400 text-lg">
@@ -19,4 +19,7 @@ export default function Comment({ comment, key }) {
         </div>
 
     )
-}
+})
+
+Comment.displayName = 'Comment';
+export default Comment;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Pagination({ currentPage, totalCount, pageSize = 12 }) {
     const router = useRouter();
@@ -9,6 +9,7 @@ export default function Pagination({ currentPage, totalCount, pageSize = 12 }) {
     const searchParams = useSearchParams();
     const [isChanging, setIsChanging] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const timeoutRef = useRef(null);
 
     useEffect(() => {
         const checkMobile = () => {
@@ -20,20 +21,31 @@ export default function Pagination({ currentPage, totalCount, pageSize = 12 }) {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, []);
+
     // محاسبه تعداد کل صفحات
     const totalPages = Math.ceil(totalCount / pageSize);
 
-    const handlePageChange = async (newPage) => {
+    const handlePageChange = (newPage) => {
         if (newPage < 1 || newPage > totalPages || isChanging) return;
 
+        // پاک کردن timeout قبلی
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
         setIsChanging(true);
-        await new Promise(resolve => setTimeout(resolve, 200)); ///////////////////////////////////
 
-        const params = new URLSearchParams(searchParams.toString());
-        params.set("page", newPage);
-        router.push(`${pathname}?${params.toString()}`);
+        timeoutRef.current = setTimeout(() => {
+            const params = new URLSearchParams(searchParams.toString());
+            params.set("page", newPage);
+            router.push(`${pathname}?${params.toString()}`);
 
-        setIsChanging(false);
+            // timeout دوم برای بازنشانی state بعد از navigation
+            setTimeout(() => setIsChanging(false), 300);
+        }, 200);
     };
 
     // منطق نمایش صفحات برای موبایل و دسکتاپ

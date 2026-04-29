@@ -42,19 +42,38 @@ export default function SearchBar() {
 
     // جستجوی لحظه‌ای
     useEffect(() => {
+        const abortController = new AbortController();
+
         const delayDebounceFn = setTimeout(async () => {
             if (term.length > 2) {
-                const res = await fetch(`http://127.0.0.1:8000/api/products/?search=${term}&limit=${isMobile ? 4 : 8}`);
-                const data = await res.json();
-                setResults(data.products || []);
-                setShowResults(true);
+                try {
+                    const res = await fetch(
+                        `http://127.0.0.1:8000/api/products/?search=${term}&limit=${isMobile ? 4 : 8}`,
+                        { signal: abortController.signal }
+                    );
+                    const data = await res.json();
+
+                    // فقط اگر درخواست لغو نشده
+                    if (!abortController.signal.aborted) {
+                        setResults(data.products || []);
+                        setShowResults(true);
+                    }
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.error('Search error:', error);
+                        setResults([]);
+                    }
+                }
             } else {
                 setResults([]);
                 setShowResults(false);
             }
-        }, isMobile ? 400 : 300); // تاخیر بیشتر برای موبایل
+        }, isMobile ? 400 : 300);
 
-        return () => clearTimeout(delayDebounceFn);
+        return () => {
+            clearTimeout(delayDebounceFn);
+            abortController.abort(); // لغو درخواست قبلی
+        };
     }, [term, isMobile]);
 
     const onSearchSubmit = (e) => {

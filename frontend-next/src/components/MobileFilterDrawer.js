@@ -65,7 +65,7 @@ export default function MobileFilterDrawer({ children }) {
                             </button>
                         </div>
 
-                        <div className="overflow-y-auto -mt-20">
+                        <div className="overflow-y-auto">
                             <FilterSidebar />
                         </div>
                     </div>

@@ -221,7 +221,7 @@ export default async function ProductDetailPage({ params }) {
                     </div>
                 </div>
 
-                <CommentsSection comments={product.comments} />
+                <CommentsSection comments={product.comments} key={product.comments.id} />
             </div>
         </div>
     );
