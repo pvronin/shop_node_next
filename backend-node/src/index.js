@@ -214,6 +214,7 @@ app.get('/api/users/me', authenticateJWT, async (req, res) => {
         const addresses = await prisma.addresses.findMany({
             where: { user_id: req.user.id },
             select: {
+                id: true,
                 label: true,
                 province: true,
                 city: true,
@@ -241,6 +242,49 @@ app.get('/api/users/me', authenticateJWT, async (req, res) => {
             success: false,
             message: 'خطای سرور',
             ...(process.env.NODE_ENV === 'development' && { error: error.message })
+        });
+    }
+});
+
+app.get('/api/addresses/:addressId', authenticateJWT, async (req, res) => {
+    try {
+        const { id: userId } = req.user;
+        const { addressId } = req.params;
+
+        const addressIdInt = parseInt(addressId);
+
+        if (isNaN(addressIdInt)) {
+            return res.status(400).json({
+                success: false,
+                message: 'شناسه آدرس معتبر نیست'
+            });
+        }
+
+        // پیدا کردن آدرس (فقط اگه مال همین کاربر باشه)
+        const address = await prisma.addresses.findFirst({
+            where: {
+                id: addressIdInt,
+                user_id: userId
+            }
+        });
+
+        if (!address) {
+            return res.status(404).json({
+                success: false,
+                message: 'آدرس یافت نشد'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            address: address
+        });
+
+    } catch (error) {
+        console.error('Error getting address:', error);
+        res.status(500).json({
+            success: false,
+            message: 'خطا در دریافت آدرس'
         });
     }
 });
@@ -275,34 +319,278 @@ app.post('/api/users/me/addresses', authenticateJWT, async (req, res) => {
 
 app.delete('/api/users/me/addresses/:addressId', authenticateJWT, async (req, res) => {
     try {
-        const { id } = req.user
-        const { addressId } = req.params
+        const { id: userId } = req.user;
+        const { addressId } = req.params;
+
+        // ⭐ مهم: تبدیل addressId به عدد (INT)
+        const addressIdInt = parseInt(addressId);
+
+        // بررسی اینکه addressId معتبر هست
+        if (isNaN(addressIdInt)) {
+            return res.status(400).json({
+                success: false,
+                message: 'شناسه آدرس معتبر نیست'
+            });
+        }
+
+        // 1. اول آدرس رو پیدا کن (درست شده)
+        const address = await prisma.addresses.findFirst({
+            where: {
+                user_id: userId,
+                id: addressIdInt  // ⭐ اینجا مشکل داشت - باید id رو مستقیم بزنی
+            }
+        });
+
+        if (!address) {
+            return res.status(404).json({
+                success: false,
+                message: 'آدرس پیدا نشد'
+            });
+        }
+
+        // 2. اگه آدرس پیش‌فرض بود، یه آدرس دیگه رو به عنوان پیش‌فرض انتخاب کن
+        if (address.is_default) {
+            const anotherAddress = await prisma.addresses.findFirst({
+                where: {
+                    user_id: userId,
+                    id: { not: addressIdInt }
+                }
+            });
+
+            if (anotherAddress) {
+                await prisma.addresses.update({
+                    where: { id: anotherAddress.id },
+                    data: { is_default: true }
+                });
+            }
+        }
+
+        // 3. حالا آدرس رو حذف کن
         await prisma.addresses.delete({
             where: {
-                id: addressId,
+                id: addressIdInt
             }
-        })
+        });
 
         res.status(200).json({
             success: true,
-        })
+            message: 'آدرس با موفقیت حذف شد'
+        });
+
     } catch (error) {
+        console.error('Delete address error:', error);
+
+        // خطای خاص پرسیما رو هندل کن
+        if (error.code === 'P2003') {
+            return res.status(400).json({
+                success: false,
+                message: 'این آدرس در حال استفاده است، ابتدا وابستگی‌ها را حذف کنید'
+            });
+        }
+
         res.status(500).json({
             success: false,
             message: error.message
-        })
+        });
     }
+});
 
-})
+app.put('/api/addresses/:addressId', authenticateJWT, async (req, res) => {
+    try {
+        const { id: userId } = req.user;
+        const { addressId } = req.params;
+        const { label, province, city, postal_code, address_line, is_default } = req.body;
 
-app.put('/api/users/me/:addressid', authenticateJWT, async (req, res) => {
-    prisma.addresses.findUnique({
-        where: {
+        const addressIdInt = parseInt(addressId);
 
-        },
+        if (isNaN(addressIdInt)) {
+            return res.status(400).json({
+                success: false,
+                message: 'شناسه آدرس معتبر نیست'
+            });
+        }
 
-    })
-})
+        // بررسی وجود آدرس و مالکیت
+        const existingAddress = await prisma.addresses.findFirst({
+            where: {
+                id: addressIdInt,
+                user_id: userId
+            }
+        });
+
+        if (!existingAddress) {
+            return res.status(404).json({
+                success: false,
+                message: 'آدرس یافت نشد'
+            });
+        }
+
+        // اعتبارسنجی داده‌ها
+        if (!label || !province || !city || !postal_code || !address_line) {
+            return res.status(400).json({
+                success: false,
+                message: 'تمامی فیلدهای الزامی باید پر شوند'
+            });
+        }
+
+        // اعتبارسنجی کد پستی (10 رقم)
+        if (!/^\d{10}$/.test(postal_code)) {
+            return res.status(400).json({
+                success: false,
+                message: 'کد پستی باید ۱۰ رقم باشد'
+            });
+        }
+
+        // به روز رسانی با transaction (در صورت تغییر وضعیت پیش‌فرض)
+        let updatedAddress;
+
+        if (is_default && !existingAddress.is_default) {
+            // اگر میخواد پیش‌فرض بشه و قبلاً نبوده
+            await prisma.$transaction(async (prisma) => {
+                // غیرفعال کردن آدرس پیش‌فرض قبلی
+                await prisma.addresses.updateMany({
+                    where: {
+                        user_id: userId,
+                        is_default: true
+                    },
+                    data: {
+                        is_default: false
+                    }
+                });
+
+                // آپدیت آدرس فعلی
+                updatedAddress = await prisma.addresses.update({
+                    where: { id: addressIdInt },
+                    data: {
+                        label,
+                        province,
+                        city,
+                        postal_code,
+                        address_line,
+                        is_default: true,
+                        updated_at: new Date()
+                    }
+                });
+            });
+        } else {
+            // آپدیت ساده بدون تغییر پیش‌فرض
+            updatedAddress = await prisma.addresses.update({
+                where: { id: addressIdInt },
+                data: {
+                    label,
+                    province,
+                    city,
+                    postal_code,
+                    address_line,
+                    is_default: is_default || false,
+                    updated_at: new Date()
+                }
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'آدرس با موفقیت ویرایش شد',
+            address: updatedAddress
+        });
+
+    } catch (error) {
+        console.error('Error updating address:', error);
+        res.status(500).json({
+            success: false,
+            message: 'خطا در ویرایش آدرس'
+        });
+    }
+});
+
+// PATCH /api/addresses/:addressId/default
+app.patch('/api/addresses/:addressId/default', authenticateJWT, async (req, res) => {
+    try {
+        const { id: userId } = req.user;
+        const { addressId } = req.params;
+
+        // تبدیل addressId به عدد
+        const addressIdInt = parseInt(addressId);
+
+        if (isNaN(addressIdInt)) {
+            return res.status(400).json({
+                success: false,
+                message: 'شناسه آدرس معتبر نیست'
+            });
+        }
+
+        // 1. اول بررسی کن این آدرس وجود داره و متعلق به این کاربر هست
+        const address = await prisma.addresses.findFirst({
+            where: {
+                id: addressIdInt,
+                user_id: userId
+            }
+        });
+
+        if (!address) {
+            return res.status(404).json({
+                success: false,
+                message: 'آدرس یافت نشد'
+            });
+        }
+
+        // 2. اگر همین الان پیش‌فرض هست، خطا بده
+        if (address.is_default) {
+            return res.status(400).json({
+                success: false,
+                message: 'این آدرس در حال حاضر پیش‌فرض است'
+            });
+        }
+
+        // 3. با استفاده از transaction (برای اطمینان از Consistency)
+        await prisma.$transaction(async (prisma) => {
+            // اول همه آدرس‌های این کاربر رو غیرپیش‌فرض کن
+            await prisma.addresses.updateMany({
+                where: {
+                    user_id: userId,
+                    is_default: true
+                },
+                data: {
+                    is_default: false
+                }
+            });
+
+            // بعد آدرس مورد نظر رو به پیش‌فرض تبدیل کن
+            await prisma.addresses.update({
+                where: {
+                    id: addressIdInt
+                },
+                data: {
+                    is_default: true
+                }
+            });
+        });
+
+        // 4. گرفتن آدرس‌های به‌روز شده برای بازگشت به فرانت
+        const updatedAddresses = await prisma.addresses.findMany({
+            where: {
+                user_id: userId
+            },
+            orderBy: {
+                is_default: 'desc'  // آدرس پیش‌فرض اول بیاد
+            }
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'آدرس پیش‌فرض با موفقیت تغییر کرد',
+            addresses: updatedAddresses
+        });
+
+    } catch (error) {
+        console.error('Error setting default address:', error);
+        res.status(500).json({
+            success: false,
+            message: 'خطا در تنظیم آدرس پیش‌فرض',
+            error: error.message
+        });
+    }
+});
 
 app.get('/api/users/:id', async (req, res) => {
     const userid = req.params.id

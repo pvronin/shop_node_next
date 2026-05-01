@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 
-export default function Pagination({ currentPage, totalCount, pageSize = 12 }) {
+const Pagination = ({ currentPage, totalCount, pageSize = 12 }) => {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -281,3 +281,5 @@ export default function Pagination({ currentPage, totalCount, pageSize = 12 }) {
         </div>
     );
 }
+
+export default memo(Pagination);

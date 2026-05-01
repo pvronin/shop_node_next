@@ -1,5 +1,6 @@
 import AddToCartSection from "@/components/AddToCartSection";
 import RatingStars from "@/components/RatingStars";
+import GetProduct from "@/utils/GetProduct";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -23,7 +24,7 @@ const CommentsSection = dynamic(
 
 export async function generateMetadata({ params }) {
     const { id } = await params;
-    const product = await getProduct(id);
+    const product = await GetProduct(id);
 
     if (!product) return { title: "محصول یافت نشد" };
 
@@ -37,21 +38,10 @@ export async function generateMetadata({ params }) {
     };
 }
 
-// تابع گرفتن دیتای محصول
-async function getProduct(id) {
-    const res = await fetch(`${apiUrl}/api/products/${id}/`, {
-        next: {
-            revalidate: 3600
-        },
-    });
-
-    if (!res.ok) return null;
-    return res.json();
-}
 
 export default async function ProductDetailPage({ params }) {
     const { id } = await params;
-    const product = await getProduct(id);
+    const product = await GetProduct(id);
 
     if (!product) notFound();
 

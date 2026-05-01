@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import HeartIcon from "./HeartIcon";
 import CompareIcon from "./CompareIcon";
 import Image from "next/image";
+import { memo } from "react";
 const RatingStars = dynamic(() => import("./RatingStars"), {
     ssr: true, // SSR فعال باشه برای SEO
     loading: () => <div className="flex gap-1">
@@ -14,7 +15,7 @@ const RatingStars = dynamic(() => import("./RatingStars"), {
     </div>
 });
 
-export default function ProductCard({ item }) {
+const ProductCard = ({ item }) => {
     const stockStatus = (() => {
         if (item.stock <= 0) return { label: 'ناموجود', className: 'bg-gray-800' };
         if (item.stock < 5) return { label: 'موجودی کم', className: 'bg-amber-500' };
@@ -114,3 +115,5 @@ export default function ProductCard({ item }) {
         </div>
     );
 }
+
+export default memo(ProductCard)
