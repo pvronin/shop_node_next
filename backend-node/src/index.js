@@ -610,6 +610,7 @@ app.put('/api/users', async (req, res) => {
 
     })
 })
+
 app.get('/api/products', async (req, res) => {
     try {
         const {
@@ -623,10 +624,13 @@ app.get('/api/products', async (req, res) => {
             ordering = ''
         } = req.query;
 
-        const where = {};
+        let where = {};
 
+        // ⭐ فیلتر بر اساس slug دسته‌بندی
         if (category) {
-            where.category_relation_id = Number(category);
+            where.productcategories = {
+                slug: category  // پیدا کردن دسته‌بندی با slug
+            };
         }
 
         if (minRating) {
@@ -642,6 +646,7 @@ app.get('/api/products', async (req, res) => {
         if (search) {
             where.OR = [
                 { title: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } }
             ];
         }
 
@@ -660,7 +665,7 @@ app.get('/api/products', async (req, res) => {
         const limitNum = Math.min(12, Math.max(1, Number(limit)));
         const skip = (pageNum - 1) * limitNum;
 
-        // دریافت محصولات به همراه تخفیف‌های فعال
+        // دریافت محصولات
         const [products, total] = await Promise.all([
             prisma.products.findMany({
                 where,
@@ -668,19 +673,26 @@ app.get('/api/products', async (req, res) => {
                 skip,
                 take: limitNum,
                 include: {
+                    productcategories: {
+                        select: {
+                            id: true,
+                            name: true,
+                            slug: true  // ⭐ شامل slug هم باشه
+                        }
+                    },
                     discounts: {
                         where: {
                             is_active: true,
                             start_date: { lte: new Date() },
                             end_date: { gte: new Date() }
                         },
-                        take: 1, // فقط اولین تخفیف فعال (اگه چندتا داشته باشه)
-                        orderBy: { percent: 'desc' } // بزرگترین درصد تخفیف
+                        take: 1,
+                        orderBy: { percent: 'desc' }
                     },
                     productcomments: {
                         select: {
                             id: true,
-                            rating: true  // اگر میانگین امتیاز هم نیاز داری
+                            rating: true
                         }
                     }
                 }
@@ -688,32 +700,35 @@ app.get('/api/products', async (req, res) => {
             prisma.products.count({ where })
         ]);
 
-        // پردازش محصولات و اضافه کردن قیمت با تخفیف
+        // پردازش محصولات
         const processedProducts = products.map(product => {
-            let discountedPrice
-            let discountPercent
-            let savings
-            // محاسبه تعداد نظرات
+            let discountedPrice, discountPercent, savings;
             const reviewsCount = product.productcomments.length;
 
-            // اگه تخفیف فعال داره
+            // محاسبه میانگین امتیاز واقعی از روی کامنت‌ها
+            const avgRating = product.productcomments.length > 0
+                ? product.productcomments.reduce((sum, c) => sum + c.rating, 0) / product.productcomments.length
+                : product.rating || 0;
+
             if (product.discounts && product.discounts.length > 0) {
                 const activeDiscount = product.discounts[0];
                 discountPercent = activeDiscount.percent;
-                const discountAmount = product.price * (discountPercent / 100);
-                discountedPrice = Math.round(product.price - discountAmount);
+                const discountAmount = Number(product.price) * (discountPercent / 100);
+                discountedPrice = Math.round(Number(product.price) - discountAmount);
                 savings = Math.round(discountAmount);
             }
 
-            // حذف discounts از آبجکت نهایی (اگه نمی‌خوای بفرستی)
-            const { productcomments, discounts, ...productWithoutDiscounts } = product;
+            const { productcomments, discounts, ...productWithoutExtras } = product;
 
             return {
-                ...productWithoutDiscounts,
+                ...productWithoutExtras,
+                price: Number(product.price),
                 discounted_price: discountedPrice,
                 discount_percent: discountPercent,
                 savings: savings,
                 reviews_count: reviewsCount,
+                average_rating: parseFloat(avgRating.toFixed(1)),
+                category: product.productcategories // اطلاعات دسته‌بندی
             };
         });
 
@@ -1079,8 +1094,18 @@ app.post('/api/auth/login', async (req, res) => {
         const token = jwt.sign(
             payload,
             process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
+            { expiresIn: process.env.JWT_EXPIRES_IN || '1d' }
         );
+
+        // ⭐ تنظیم کوکی HttpOnly (ایمن)
+        res.cookie('access_token', token, {
+            httpOnly: true,      // ← جلوگیری از دسترسی جاوااسکریپت
+            secure: process.env.NODE_ENV === 'production', // ← فقط HTTPS در production
+            sameSite: 'strict',  // ← جلوگیری از CSRF
+            maxAge: 1 * 24 * 60 * 60 * 1000, // 7 روز (هماهنگ با expiresIn)
+            path: '/',
+            // domain: process.env.COOKIE_DOMAIN // در صورت نیاز
+        });
 
         // 6. پاسخ موفق
         res.status(200).json({
@@ -1092,7 +1117,8 @@ app.post('/api/auth/login', async (req, res) => {
                 username: user.username,
                 email: user.email,
                 first_name: user.first_name,
-                last_name: user.last_name
+                last_name: user.last_name,
+                role: user.role
                 // هر فیلد دیگه‌ای که می‌خوای (بدون password_hash!)
             }
         });
@@ -1101,8 +1127,7 @@ app.post('/api/auth/login', async (req, res) => {
         console.error('Login error:', error);
         res.status(500).json({
             success: false,
-            message: 'خطای سرور در هنگام ورود',
-            ...(process.env.NODE_ENV === 'development' && { error: error.message })
+            message: 'خطای سرور در هنگام ورود'
         });
     }
 });

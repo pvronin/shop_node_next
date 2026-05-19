@@ -1,12 +1,14 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useTransition } from "react"; // ⭐ اضافه شد useTransition
 import { FiFilter, FiX, FiStar, FiDollarSign, FiChevronDown } from "react-icons/fi";
 import { RiFilter3Line } from "react-icons/ri";
 import PriceRange from "./PriceRange";
+import Link from "next/link";
 
 export default function FilterSidebar() {
     const router = useRouter();
+    const pathname = usePathname();
     const searchParams = useSearchParams();
 
     // ⭐ اضافه شده - برای مدیریت وضعیت لودینگ
@@ -45,14 +47,13 @@ export default function FilterSidebar() {
         getCategories();
     }, []);
 
-    // ⭐ تغییر کرده - استفاده از startTransition
     const updateFilter = (key, value) => {
         startTransition(() => {
             const params = new URLSearchParams(searchParams.toString());
             if (value) params.set(key, value);
             else params.delete(key);
             params.set("page", "1");
-            router.push(`/shop?${params.toString()}`, { scroll: false });
+            router.push(`${pathname}?${params.toString()}`, { scroll: false });
         });
     };
 
@@ -66,7 +67,7 @@ export default function FilterSidebar() {
     // ⭐ تغییر کرده - پاک کردن فیلترها با Transition
     const clearAllFilters = () => {
         startTransition(() => {
-            router.push('/shop', { scroll: false });
+            router.push(pathname, { scroll: false });
         });
     };
 
@@ -100,6 +101,57 @@ export default function FilterSidebar() {
 
                 {/* محتوای فیلترها */}
                 <div className="p-5 space-y-5">
+
+                    {/* بخش دسته‌بندی‌ها */}
+                    <div className="bg-gray-50 rounded-xl p-4">
+                        <button
+                            onClick={() => toggleSection('categories')}
+                            className="flex items-center justify-between w-full mb-3"
+                        >
+                            <div className="flex items-center gap-2">
+                                <FiChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${expandedSections.categories ? 'rotate-180' : ''}`} />
+                                <h3 className="font-bold text-sm md:text-base text-gray-900">دسته‌بندی‌ها</h3>
+                            </div>
+                            {searchParams.get("category") && (
+                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">فعال</span>
+                            )}
+                        </button>
+
+                        {expandedSections.categories && (
+                            <div className="space-y-2">
+                                <Link
+                                href={"/shop"}
+                                    disabled={isPending}
+                                    className={`w-full text-right px-4 py-2.5 rounded-lg text-sm transition-all flex items-center justify-between ${!searchParams.get("category")
+                                        ? "bg-blue-50 text-blue-700 font-bold border border-blue-200"
+                                        : "text-gray-600 hover:bg-gray-100"} ${isPending ? 'opacity-50 pointer-events-none' : ''}`}
+                                >
+                                    <span>همه دسته‌بندی‌ها</span>
+                                    <span className="text-gray-400 text-xs">({categories.length})</span>
+                                </Link>
+
+                                <div className="max-h-60 overflow-y-auto pr-2">
+                                    {categories.map(cat => (
+                                        <Link
+                                            href={`/shop/category/${cat.slug}`}
+                                            key={cat.id}
+                                            onClick={() => updateFilter("category", cat.id)}
+                                            disabled={isPending} // ⭐ اضافه شده
+                                            className={`w-full text-right px-4 py-2.5 rounded-lg text-sm transition-all my-1 flex items-center justify-between ${searchParams.get("category") === cat.slug
+                                                ? "bg-blue-50 text-blue-700 font-bold border border-blue-200"
+                                                : "text-gray-600 hover:bg-gray-100"} ${isPending ? 'opacity-50 pointer-events-none' : ''}`}
+                                        >
+                                            <span className="flex items-center gap-2">
+                                                <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+                                                {cat.name}
+                                            </span>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     {/* بخش ترتیب */}
                     <div className="bg-gray-50 rounded-xl p-4">
                         <button
@@ -131,54 +183,7 @@ export default function FilterSidebar() {
                         )}
                     </div>
 
-                    {/* بخش دسته‌بندی‌ها */}
-                    <div className="bg-gray-50 rounded-xl p-4">
-                        <button
-                            onClick={() => toggleSection('categories')}
-                            className="flex items-center justify-between w-full mb-3"
-                        >
-                            <div className="flex items-center gap-2">
-                                <FiChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${expandedSections.categories ? 'rotate-180' : ''}`} />
-                                <h3 className="font-bold text-sm md:text-base text-gray-900">دسته‌بندی‌ها</h3>
-                            </div>
-                            {searchParams.get("category") && (
-                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">فعال</span>
-                            )}
-                        </button>
 
-                        {expandedSections.categories && (
-                            <div className="space-y-2">
-                                <button
-                                    onClick={() => updateFilter("category", "")}
-                                    disabled={isPending} // ⭐ اضافه شده
-                                    className={`w-full text-right px-4 py-2.5 rounded-lg text-sm transition-all flex items-center justify-between ${!searchParams.get("category")
-                                        ? "bg-blue-50 text-blue-700 font-bold border border-blue-200"
-                                        : "text-gray-600 hover:bg-gray-100"} ${isPending ? 'opacity-50 pointer-events-none' : ''}`}
-                                >
-                                    <span>همه دسته‌بندی‌ها</span>
-                                    <span className="text-gray-400 text-xs">({categories.length})</span>
-                                </button>
-
-                                <div className="max-h-60 overflow-y-auto pr-2">
-                                    {categories.map(cat => (
-                                        <button
-                                            key={cat.id}
-                                            onClick={() => updateFilter("category", cat.id)}
-                                            disabled={isPending} // ⭐ اضافه شده
-                                            className={`w-full text-right px-4 py-2.5 rounded-lg text-sm transition-all my-1 flex items-center justify-between ${searchParams.get("category") === cat.slug
-                                                ? "bg-blue-50 text-blue-700 font-bold border border-blue-200"
-                                                : "text-gray-600 hover:bg-gray-100"} ${isPending ? 'opacity-50 pointer-events-none' : ''}`}
-                                        >
-                                            <span className="flex items-center gap-2">
-                                                <span className="w-2 h-2 rounded-full bg-blue-400"></span>
-                                                {cat.name}
-                                            </span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
 
                     {/* بخش امتیاز */}
                     <div className="bg-gray-50 rounded-xl p-4">
@@ -264,7 +269,7 @@ export default function FilterSidebar() {
                                     params.set("minPrice", tempPrice[0]);
                                     params.set("maxPrice", tempPrice[1]);
                                     params.set("page", "1");
-                                    router.push(`/shop?${params.toString()}`, { scroll: false });
+                                    router.push(`${pathname}?${params.toString()}`, { scroll: false });
                                 });
                             }}
                             disabled={isPending} // ⭐ اضافه شده

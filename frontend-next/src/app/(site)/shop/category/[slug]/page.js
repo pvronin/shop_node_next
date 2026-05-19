@@ -1,65 +1,21 @@
-
-// const getProductsByCategory = async (page, category, minPrice, maxPrice, minRating, ordering) => {
-//     const query = new URLSearchParams({
-//         page: page,
-//         ...(search && { search }),
-//         ...(category && { category }),
-//         ...(minPrice && { minPrice }),
-//         ...(maxPrice && { maxPrice }),
-//         ...(minRating && { minRating }),
-//         ...(ordering && { ordering }),
-//     }).toString();
-//     const res = await fetch(`http://127.0.0.1:8000/api/products/?${query}`, {
-//         cache: "no-store",
-//     });
-
-//     if (!res.ok) return { results: [], count: 0 };
-
-//     return res.json();
-
-// }
-
-
-
-
-// export default async function ProductsCategoryPage({ params }) {
-
-//     const param = await params
-//     const page = parseInt(param.page) || 1
-//     const category = param.category || ""
-//     const minPrice = param.minPrice || ""
-//     const maxPrice = param.maxPrice || ""
-//     const minRating = param.minRating || ""
-//     const ordering = param.ordering || ""
-
-//     const products = getProductsByCategory(page, category, minPrice, maxPrice, minRating, ordering)
-
-
-
-
-
-
-
-
-//     console.log(param);
-
-
-//     return (
-//         <>
-//             <p>دسته‌بندی: {param.category}</p>
-//         </>
-//     );
-// }
-
-
 import ProductGrid from "@/components/ProductGrid";
 import Pagination from "@/components/Pagination";
 import SearchBar from "@/components/SearchBar";
 import FilterSidebar from "@/components/FilterSidebar";
-import MobileFilterDrawer from "@/components/MobileFilterDrawer"; // کامپوننت جدید
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
+import ProductGridSkeleton from "@/components/ProductGridSkeleton";
+import FilterSidebarSkeleton from "@/components/FilterSidebarSkeleton";
+const MobileFilterDrawer = dynamic(
+    () => import("@/components/MobileFilterDrawer"),
+    {
+        loading: () => (
+            <button className="lg:hidden p-2.5 bg-blue-50 text-blue-600 rounded-xl animate-pulse w-20 h-10" />
+        ),
+    }
+);
 
 const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API;
-
 
 // تابع آپدیت شده برای دریافت پارامترهای فیلتر
 async function getShopData(page, search = "", category = "", minPrice = "", maxPrice = "", minRating = "", ordering = "") {
@@ -74,35 +30,52 @@ async function getShopData(page, search = "", category = "", minPrice = "", maxP
     }).toString();
 
     const res = await fetch(`${apiUrl}/api/products/?${query}`, {
-        cache: "no-store",
+        next: {
+            revalidate: 60
+        }
     });
-    console.log(query);
 
     if (!res.ok) return { results: [], count: 0 };
 
     return res.json();
 }
 
-export default async function ShopPage({ params, searchParams, }) {
+export async function generateMetadata({ searchParams }) {
     const sp = await searchParams;
-    const p = await params;
+    const search = sp.search || "";
+
+    return {
+        title: search ? `نتایج جستجو: ${search} | نکست شاپ` : "فروشگاه | نکست شاپ",
+        description: search
+            ? `مشاهده محصولات مرتبط با "${search}" در فروشگاه نکست شاپ`
+            : "بهترین محصولات با بهترین قیمت‌ها در فروشگاه نکست شاپ",
+        robots: {
+            index: true,
+            follow: true,
+        },
+    };
+}
+
+export default async function CategoryParams({ searchParams, params }) {
+    const sp = await searchParams;
+    const { slug } = await params;
 
     const page = parseInt(sp.page) || 1;
     const search = sp.search || "";
-    const category = sp.category || "";
+    const category = slug || "";
     const minPrice = sp.minPrice || "";
     const maxPrice = sp.maxPrice || "";
     const minRating = sp.minRating || "";
     const ordering = sp.ordering || "";
 
     const data = await getShopData(page, search, category, minPrice, maxPrice, minRating, ordering);
-    console.log(sp);
-    console.log(p);
     return (
-        <div className="flex flex-col lg:flex-row lg:gap-10 p-2 container mx-auto">
+        <div className="flex gap-10 p-2 container mx-auto">
             {/* سایدبار فیلتر - فقط در دسکتاپ نمایش داده شود */}
-            <div className="hidden lg:block w-full lg:w-64 xl:w-72 flex-shrink-0 relative">
-                <FilterSidebar />
+            <div className="hidden lg:block w-72 flex-shrink-0 relative">
+                <Suspense fallback={<FilterSidebarSkeleton />}>
+                    <FilterSidebar />
+                </Suspense>
             </div>
 
             {/* محتوای اصلی */}
@@ -113,7 +86,7 @@ export default async function ShopPage({ params, searchParams, }) {
                         <div>
                             <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mb-2">فروشگاه</h1>
                             <p className="text-xs md:text-sm text-gray-500">
-                                نمایش <span className="font-bold">{data.pagination.limit}</span> از
+                                نمایش <span className="font-bold">{data.pagination.totalcount >= data.pagination.limit ? data.pagination.limit : data.pagination.totalcount % data.pagination.limit}</span> از
                                 <span className="font-bold mr-1"> {data.pagination.totalcount.toLocaleString('fa-IR')}</span> کالا
                             </p>
                         </div>
@@ -137,7 +110,9 @@ export default async function ShopPage({ params, searchParams, }) {
 
 
                 {/* گرید محصولات */}
-                <ProductGrid products={data.products} />
+                <Suspense fallback={<ProductGridSkeleton />} >
+                    <ProductGrid products={data.products} />
+                </Suspense>
 
                 {/* پجینیشن */}
                 <div className="mt-8 md:mt-12">

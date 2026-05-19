@@ -11,7 +11,7 @@ export default function NavbarLinks() {
 
       <NavItem href="/shop" label="فروشگاه" icon={HiShoppingBag} />
 
-      <NavItem href="/about" label="درباره ما" icon={HiInformationCircle} />
+      <NavItem href="/aboutus" label="درباره ما" icon={HiInformationCircle} />
 
     </div>
   );

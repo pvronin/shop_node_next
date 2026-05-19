@@ -1,14 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { HiMenu, HiX } from "react-icons/hi";
+import GetCategories from "@/utils/GetCategories";
 
 
 export default function MobileMenuButton() {
     const [isOpen, setIsOpen] = useState(false);
     const { user, logout } = useAuth();
+    const [categories, setCategories] = useState([]);
+    const [IsOpenCategories, setIsOpenCategories] = useState(false)
+
+
+    useEffect(() => {
+        GetCategories().then((data) => {
+            setCategories(data);
+        }).catch(console.error);
+    }, []); // ← خالی بذار
+
 
     return (
         <>
@@ -49,7 +60,6 @@ export default function MobileMenuButton() {
 
                 {/* لینک‌ها */}
                 <nav className="mt-4 space-y-3 text-gray-700 font-medium">
-
                     <Link
                         href="/"
                         className="block px-3 py-2 rounded-lg hover:bg-emerald-50"
@@ -65,6 +75,33 @@ export default function MobileMenuButton() {
                     >
                         فروشگاه
                     </Link>
+
+                    {/* دکمه دسته‌بندی‌ها */}
+                    <div>
+                        <button
+                            onClick={() => setIsOpenCategories(!IsOpenCategories)}
+                            className="block w-full text-right px-3 py-2 rounded-lg hover:bg-emerald-50 font-bold"
+                        >
+                            دسته‌بندی‌ها
+                            <span className="mr-2">{IsOpenCategories ? "▲" : "▼"}</span>
+                        </button>
+
+                        {/* لیست دسته‌بندی‌ها - بیرون از دکمه */}
+                        {IsOpenCategories && (
+                            <div className="mr-4 mt-2 space-y-2 border-r-2 border-emerald-100 pr-2 h-50 overflow-y-scroll">
+                                {categories.map((cat) => (
+                                    <Link
+                                        key={cat.id}
+                                        href={`/shop/category/${cat.slug}`}
+                                        className="block px-3 py-2 rounded-lg text-sm hover:bg-emerald-50"
+                                        onClick={() => setIsOpen(false)}
+                                    >
+                                        {cat.name}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
                     {user ? (
                         <button
@@ -85,7 +122,6 @@ export default function MobileMenuButton() {
                             ورود / ثبت‌نام
                         </Link>
                     )}
-
                 </nav>
             </div>
         </>

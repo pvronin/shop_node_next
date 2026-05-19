@@ -23,7 +23,8 @@ export default function Footer() {
                     <div>
                         <h4 className="font-bold text-gray-900 mb-4">خدمات مشتریان</h4>
                         <ul className="space-y-2 text-sm text-gray-600">
-                            <li><a href="#" className="hover:text-emerald-600 transition">تماس با پشتیبانی</a></li>
+                            <li><a href="/contact" className="hover:text-emerald-600 transition">تماس با ما</a></li>
+                            <li><a href="/aboutus" className="hover:text-emerald-600 transition">درباره ما</a></li>
                             <li><a href="#" className="hover:text-emerald-600 transition">بازگشت کالا</a></li>
                         </ul>
                     </div>
@@ -31,7 +32,7 @@ export default function Footer() {
                     <div>
                         <h4 className="font-bold text-gray-900 mb-4">خبرنامه</h4>
                         <div className="flex gap-2">
-                            <input type="email" placeholder="ایمیل شما" className="bg-gray-100 border-none rounded-lg px-4 py-2 text-sm w-full outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
+                            <input type="email" placeholder="ایمیل شما" className="bg-gray-100 border-none rounded-lg px-4 py-3 text-sm w-full outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
                             <button className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition">ثبت</button>
                         </div>
                     </div>
