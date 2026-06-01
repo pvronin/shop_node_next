@@ -5,6 +5,7 @@ import AnimationLottieShop from "@/components/AnimationLottieShop";
 import ProductsSectionSlider from "@/components/ProductsSectionSlider";
 import discount_banner2 from "@/assets/img/discount_banner2.png";
 import GetProducts from "@/utils/GetProducts";
+import Alert from "@/components/Alert";
 
 // ✅ فقط دومی رو لایزالود کن (چون پایین صفحه است)
 const LazyProductsSection = dynamic(
@@ -33,9 +34,11 @@ export async function generateMetadata() {
 export default async function HomePage() {
     const data = await GetProducts("page=1");
     const products = data.products.slice(0, 8);
-
     return (
         <div>
+            {
+                <Alert message={"به علت تستی بودن سایت ممکن است بعضی مشکلات باشد که مربوط به این است که روی سرور واقعی نیست یا تصاویر کالا ها وابسته ای پی ای های خارجی هستند و نیاز به ویپی ان ممکن است داشته باشن. همچنین به علت در نظر گرفتن نیاز های سئو در نکست خیلی دستم بسته بود و سعی کردم سئو شدن و سرور ساید موندن اکثر صفحاتو کامپوننت هارو رعایت کنم."} />
+            }
             {/* Hero Section - بدون تغییر */}
             <section className="min-h-screen relative flex flex-col-reverse md:flex-row items-center gap-10 -mt-10 text-white pb-22 px-6 md:p-24 text-center overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600">

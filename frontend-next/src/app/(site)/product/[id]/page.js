@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
-const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API;
+// const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API;
 
 const CommentsSection = dynamic(
     () => import("@/components/CommentsSection"),
@@ -70,12 +70,19 @@ export default async function ProductDetailPage({ params }) {
                 {/* گالری تصاویر */}
                 <div className="space-y-4">
                     <div className="relative h-[500px] w-full rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 p-8">
-                        <Image
+                        {/* <Image
                             src={product.thumbnail || "/img/altproduct.jpg"}
                             alt={product.title}
                             fill
                             className="object-contain hover:scale-105 transition-transform duration-300"
                             priority
+                        /> */}
+                        <img
+                            src={product.thumbnail || "/img/altproduct.jpg"}
+                            alt={product.title}
+                            loading="lazy"
+                            className="object-contain hover:scale-105 transition-transform duration-300 w-full h-full"
+                            title={product.title}
                         />
                     </div>
 

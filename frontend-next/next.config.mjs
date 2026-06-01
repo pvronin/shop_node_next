@@ -9,6 +9,7 @@ const nextConfig = {
                 pathname: '/product-images/**', // الگوی مسیر تصاویر
             },
         ],
+        minimumCacheTTL: 60 * 60 * 24,
     },
 };
 

@@ -49,14 +49,23 @@ const ProductCard = ({ item }) => {
             <Link href={`/product/${item.id}`}>
                 {/* تصویر */}
                 <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-                    <Image
+                    {/* <Image
                         src={item.thumbnail}
                         alt={item.title}
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                         className={`h-full w-full object-contain transition-all duration-500`}
                         loading="lazy"
+                    /> */}
+
+                    <img
+                        src={item.thumbnail || "/img/altproduct.jpg"}
+                        alt={item.title}
+                        loading="lazy"
+                        className="h-full w-full object-contain transition-all duration-500"
+                        title={item.title}
                     />
+
                 </div>
 
                 {/* اطلاعات */}

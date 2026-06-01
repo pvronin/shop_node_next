@@ -9,12 +9,17 @@ const CartItem = memo(function CartItem({ item, addToCart, removeFromCart, decre
         <div className="flex items-center gap-2 md:gap-4 bg-white p-4 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             {/* تصویر */}
             <div className="w-20 md:w-25 bg-gray-50 rounded-2xl flex-shrink-0 p-1 md:p-2 relative h-20 md:h-25">
-                <Image
+                {/* <Image
                     src={item.thumbnail}
                     alt={item.title}
                     fill
                     className="object-contain"
                     sizes="80px"
+                /> */}
+                <img
+                    src={item.thumbnail}
+                    alt={item.title}
+                    className="object-contain"
                 />
             </div>
 
