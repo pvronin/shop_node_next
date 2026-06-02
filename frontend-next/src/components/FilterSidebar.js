@@ -37,7 +37,7 @@ export default function FilterSidebar() {
     useEffect(() => {
         const getCategories = async () => {
             try {
-                const res = await fetch("http://127.0.0.1:8000/api/productcategories");
+                const res = await fetch("http://127.0.0.1:8000/api/products/categories");
                 const data = await res.json();
                 setCategories(data);
             } catch (error) {

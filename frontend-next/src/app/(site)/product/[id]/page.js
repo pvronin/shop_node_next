@@ -1,3 +1,4 @@
+import AddProductComment from "@/components/AddProductComment";
 import AddToCartSection from "@/components/AddToCartSection";
 import RatingStars from "@/components/RatingStars";
 import GetProduct from "@/utils/GetProduct";
@@ -208,8 +209,13 @@ export default async function ProductDetailPage({ params }) {
             </div>
 
             {/* بخش نظرات */}
-            <div className="bg-gradient-to-b from-white to-gray-50 p-8 rounded-2xl border border-gray-200 mb-8">
-                <div className="flex justify-between items-center mb-8">
+            <div className="bg-gradient-to-b from-white to-gray-50 p-8 rounded-2xl border border-gray-200 mb-8 space-y-16">
+
+                <div>
+                    <h2>اضافه کردن نظر</h2>
+                    <AddProductComment productId={id} />
+                </div>
+                <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold text-gray-900">
                         نظرات کاربران
                     </h2>

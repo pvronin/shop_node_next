@@ -3,7 +3,7 @@ import Comment from "./Comment";
 
 const CommentsSection = memo(({ comments = [] }) => {
     return (
-        <div className="bg-white p-8 rounded-2xl shadow-sm mt-12">
+        <div className="bg-white p-8 rounded-2xl shadow-sm mt-8">
 
             {comments && comments.length > 0 ? (
                 <div className="space-y-6">

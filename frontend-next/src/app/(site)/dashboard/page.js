@@ -12,13 +12,10 @@ import {
     FiCheckCircle,
     FiXCircle,
     FiSend,
-    FiAward,
     FiEdit2,
     FiSave,
     FiX,
     FiMapPin,
-    FiHome,
-    FiBriefcase,
     FiTrash2,
     FiPlus
 } from 'react-icons/fi';
@@ -195,7 +192,7 @@ export default function DashboardPage() {
 
         try {
             const token = Cookies.get('access_token');
-            await axios.delete(`${apiUrl}/api/users/me/addresses/${addressId}`, {
+            await axios.delete(`${apiUrl}/api/addresses/${addressId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 

@@ -64,7 +64,7 @@ export default function NewAddress() {
             const token = Cookies.get('access_token');
 
             const response = await axios.post(
-                `${apiUrl}/api/users/me/addresses`,
+                `${apiUrl}/api/addresses`,
                 form,
                 {
                     headers: {
