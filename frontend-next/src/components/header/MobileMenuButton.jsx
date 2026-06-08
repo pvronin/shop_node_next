@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { HiMenu, HiX } from "react-icons/hi";
 import GetCategories from "@/utils/GetCategories";
+import { TiArrowSortedDown, TiArrowSortedUp } from "react-icons/ti";
+
 
 
 export default function MobileMenuButton() {
@@ -80,20 +82,20 @@ export default function MobileMenuButton() {
                     <div>
                         <button
                             onClick={() => setIsOpenCategories(!IsOpenCategories)}
-                            className="block w-full text-right px-3 py-2 rounded-lg hover:bg-emerald-50 font-bold"
+                            className="flex items-center w-full text-right px-3 py-2 rounded-lg hover:bg-emerald-50 font-bold"
                         >
                             دسته‌بندی‌ها
-                            <span className="mr-2">{IsOpenCategories ? "▲" : "▼"}</span>
+                            <span className="mr-2">{IsOpenCategories ? <TiArrowSortedUp /> : <TiArrowSortedDown />}</span>
                         </button>
 
                         {/* لیست دسته‌بندی‌ها - بیرون از دکمه */}
                         {IsOpenCategories && (
-                            <div className="mr-4 mt-2 space-y-2 border-r-2 border-emerald-100 pr-2 h-50 overflow-y-scroll">
+                            <div className="mr-4 mb-6 border-r-2 border-emerald-100 pr-2 h-50 overflow-y-scroll">
                                 {categories.map((cat) => (
                                     <Link
                                         key={cat.id}
                                         href={`/shop/category/${cat.slug}`}
-                                        className="block px-3 py-2 rounded-lg text-sm hover:bg-emerald-50"
+                                        className="block px-3 py-3 text-sm hover:bg-emerald-50 border-b-1 border-gray-100"
                                         onClick={() => setIsOpen(false)}
                                     >
                                         {cat.name}

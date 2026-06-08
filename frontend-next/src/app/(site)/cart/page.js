@@ -4,6 +4,7 @@ import { useCartStore } from "@/store/useCartStore";
 import Link from "next/link";
 import CartSummary from "@/components/cart/CartSummary";
 import CartItem from "@/components/cart/CartItem";
+import { FaTrashAlt } from "react-icons/fa";
 
 export default function CartPage() {
     const { cart, removeFromCart, addToCart, decreaseQuantity, clearCart, getTotalPrice } = useCartStore();
@@ -48,9 +49,10 @@ export default function CartPage() {
                     <div className="flex justify-start">
                         <button
                             onClick={clearCart}
-                            className="text-lg font-medium text-red-500 hover:text-red-700 transition-colors flex items-center gap-1 p-2"
+                            className="text-lg font-medium text-red-500 hover:text-white group border hover:bg-red-500 rounded-2xl transition-colors flex items-center justify-center gap-2 p-3 w-full"
                         >
-                            🗑️ خالی کردن سبد خرید
+                            <FaTrashAlt className="text-gray-500 group-hover:text-white" />
+                            خالی کردن سبد
                         </button>
                     </div>
                 </div>

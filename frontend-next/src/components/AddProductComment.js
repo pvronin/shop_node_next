@@ -1,6 +1,10 @@
 'use client'
 
 import { useState } from "react"
+import { FaSearch } from "react-icons/fa";
+import { FaCommentMedical, FaRegCommentDots } from "react-icons/fa6";
+import { MdOutlineDoNotDisturb } from "react-icons/md";
+import { TfiWrite } from "react-icons/tfi";
 
 const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API;
 
@@ -103,7 +107,7 @@ const AddProductComment = ({ productId, onCommentSubmitted }) => {
 
     // متن راهنما برای امتیازها
     const getRatingText = (rate) => {
-        switch(rate) {
+        switch (rate) {
             case 1: return 'خیلی بد'
             case 2: return 'بد'
             case 3: return 'متوسط'
@@ -132,8 +136,8 @@ const AddProductComment = ({ productId, onCommentSubmitted }) => {
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
-                📝 ثبت نظر برای این محصول
+            <h3 className="text-xl font-bold text-gray-900 mb-8 flex items-center gap-2 ">
+                <TfiWrite className="text-3xl" /> ثبت نظر برای این محصول
             </h3>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -156,8 +160,8 @@ const AddProductComment = ({ productId, onCommentSubmitted }) => {
 
                 {/* بخش نوشتن نظر */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        💬 نظر شما *
+                    <label className="block font-medium text-gray-700 mb-2">
+                        <FaRegCommentDots /> نظر شما *
                     </label>
                     <textarea
                         value={comment}
@@ -211,7 +215,7 @@ const AddProductComment = ({ productId, onCommentSubmitted }) => {
                         </>
                     ) : (
                         <>
-                            <span>📤</span>
+                            <span><FaCommentMedical /></span>
                             <span>ثبت نظر</span>
                         </>
                     )}
@@ -219,8 +223,8 @@ const AddProductComment = ({ productId, onCommentSubmitted }) => {
 
                 {/* نکات اخلاقی */}
                 <div className="text-xs text-gray-500 text-center pt-4 border-t border-gray-100">
-                    <p>🔍 نظرات شما پس از بررسی توسط تیم ما منتشر خواهد شد</p>
-                    <p className="mt-1">🚫 از درج نظرات توهین‌آمیز و غیرمرتبط خودداری فرمایید</p>
+                    <p className="flex gap-1 justify-center items-center">نظرات شما پس از بررسی توسط تیم ما منتشر خواهد شد<FaSearch className="text-blue-500" /></p>
+                    <p className="mt-1 flex gap-1 justify-center items-center">از درج نظرات توهین‌آمیز و غیرمرتبط خودداری فرمایید<MdOutlineDoNotDisturb className="text-red-500" /></p>
                 </div>
             </form>
         </div>

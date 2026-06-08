@@ -2,6 +2,7 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import ScrollIndicator from "@/components/header/ScrollIndicator";
 
 // main colors: blue-600, emerald-600 in tailwind
 const vazir = localFont({
@@ -23,6 +24,10 @@ export default function RootLayout({ children }) {
         <html lang="fa" dir="rtl">
             <body className={`${vazir.className} antialiased`}>
                 <AuthProvider>{children}</AuthProvider>
+                {/* برای اسکرول کل صفحه به پایین */}
+                <div className="">
+                    <ScrollIndicator selector="window" ScrollToTop={true} PositionClasses={"fixed bottom-6 right-10"} />
+                </div>
             </body>
         </html>
     );
