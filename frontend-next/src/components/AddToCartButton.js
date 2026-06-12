@@ -2,6 +2,7 @@
 
 import { useCartStore } from "@/store/useCartStore";
 import { useCallback, useState } from "react";
+import { toast } from "sonner";
 
 export default function AddToCartButton({ item }) {
     const addToCart = useCartStore((state) => state.addToCart);
@@ -15,6 +16,7 @@ export default function AddToCartButton({ item }) {
         setIsAdding(true);
         await new Promise(resolve => setTimeout(resolve, 400));
         addToCart(item, 1);
+        toast.success("محصول به سبد اضافه شد")
         setIsAdding(false);
     }, [item, addToCart]);
 

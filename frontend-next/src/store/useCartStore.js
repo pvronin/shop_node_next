@@ -17,6 +17,7 @@ export const useCartStore = create(
                         cart: cart.map((item) =>
                             item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
                         ),
+
                     });
                 } else {
                     // اگر محصول جدید بود

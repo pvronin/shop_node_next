@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  /* نام متغیر متصل به Next.js رو به فونت پیش‌فرض تیلویند (sans) می‌شناسونیم */
+  --font-sans: var(--font-vazir), ui-sans-serif, system-ui;
+}
 .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;

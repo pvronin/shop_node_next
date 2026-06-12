@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import ScrollIndicator from "@/components/header/ScrollIndicator";
+import { Toaster } from "sonner";
 
 // main colors: blue-600, emerald-600 in tailwind
 const vazir = localFont({
@@ -21,13 +22,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
     return (
-        <html lang="fa" dir="rtl">
-            <body className={`${vazir.className} antialiased`}>
+        <html lang="fa" dir="rtl" className={vazir.variable}>
+            <body className="antialiased font-sans">
+                <Toaster richColors position="top-center" theme="dark" toastOptions={{ style: { fontFamily: "var(--font-vazir)", }, }} />
                 <AuthProvider>{children}</AuthProvider>
-                {/* برای اسکرول کل صفحه به پایین */}
-                <div className="">
-                    <ScrollIndicator selector="window" ScrollToTop={true} PositionClasses={"fixed bottom-6 right-10"} />
-                </div>
+                <ScrollIndicator selector="window" ScrollToTop={true} PositionClasses="fixed bottom-6 right-10" />
             </body>
         </html>
     );

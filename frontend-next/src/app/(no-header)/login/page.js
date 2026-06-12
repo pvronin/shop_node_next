@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -34,7 +35,10 @@ export default function LoginPage() {
         const result = await login(email, password);
 
         if (result.success) {
-            router.push("/");
+            toast.success("ورود موفقیت‌آمیز بود");
+            setTimeout(() => {
+                router.push("/");
+            }, 1200);
         } else {
             setError(result.error || "نام کاربری یا رمز عبور اشتباه است.");
         }

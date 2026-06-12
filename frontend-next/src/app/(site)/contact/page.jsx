@@ -18,6 +18,7 @@ import {
 } from "react-icons/fi";
 import { FaTelegramPlane } from "react-icons/fa";
 import Link from "next/link";
+import { toast } from "sonner";
 
 
 
@@ -313,6 +314,7 @@ export default function ContactPage() {
                 </div>
             </section>
 
+
             {/* بخش سوالات متداول کامل */}
             <section className="py-16 bg-gradient-to-r from-gray-50 to-blue-50">
                 <div className="container mx-auto px-4">
@@ -375,7 +377,7 @@ export default function ContactPage() {
                     </div>
                 </div>
             </section>
-        </div>
+        </div >
     );
 }
 
