@@ -6,6 +6,7 @@ import Cookies from 'js-cookie';
 import axios from "axios";
 import { FiMapPin, FiTag, FiMap, FiNavigation, FiMail, FiSave, FiArrowRight, FiTrash2 } from "react-icons/fi";
 import { RiMapPinLine } from "react-icons/ri";
+import { toast } from "sonner";
 
 const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API;
 
@@ -110,14 +111,19 @@ export default function EditAddress() {
             );
 
             if (response.data.success) {
-                alert('آدرس با موفقیت ویرایش شد');
+                toast.success("آدرس با موفقیت بروزرسانی شد");
                 router.push('/dashboard');
             } else {
                 alert(response.data.message || 'خطا در ویرایش آدرس');
             }
         } catch (error) {
             console.error('Error updating address:', error);
-            alert(error.response?.data?.message || 'خطا در ارتباط با سرور');
+            toast.error(
+                <div>
+                    <p>خطا در بروزرسانی آدرس</p>
+                    <small>{error.response?.data?.message}</small>
+                </div>
+            );
         } finally {
             setIsLoading(false);
         }
@@ -141,11 +147,16 @@ export default function EditAddress() {
                 }
             );
 
-            alert('آدرس با موفقیت حذف شد');
+            toast.success("آدرس با موفقیت حذف شد");
             router.push('/dashboard');
         } catch (error) {
             console.error('Error deleting address:', error);
-            alert('خطا در حذف آدرس');
+            toast.error(
+                <div>
+                    <p>خطا در حذف آدرس</p>
+                    <small>{error.response?.data?.message}</small>
+                </div>
+            );
         }
     };
 
@@ -154,7 +165,7 @@ export default function EditAddress() {
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-gray-500">در حال加载 اطلاعات...</p>
+                    <p className="text-gray-500">در حال بارگذاری اطلاعات...</p>
                 </div>
             </div>
         );
@@ -359,7 +370,7 @@ export default function EditAddress() {
                                 <>
                                     <FiSave className="w-5 h-5" />
                                     ذخیره تغییرات
-                                    <FiArrowRight className="w-4 h-4" />
+
                                 </>
                             )}
                         </button>

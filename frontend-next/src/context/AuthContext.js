@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 
 
@@ -108,6 +109,7 @@ export function AuthProvider({ children }) {
     const logout = () => {
         Cookies.remove("access_token");
         Cookies.remove("refresh_token");
+        toast.success("شما از حساب خود خارج شدید")
         setUser(null);
         router.push("/login");
     };

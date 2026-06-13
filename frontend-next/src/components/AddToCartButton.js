@@ -16,7 +16,7 @@ export default function AddToCartButton({ item }) {
         setIsAdding(true);
         await new Promise(resolve => setTimeout(resolve, 400));
         addToCart(item, 1);
-        toast.success("محصول به سبد اضافه شد")
+        // toast.success("محصول به سبد اضافه شد")
         setIsAdding(false);
     }, [item, addToCart]);
 

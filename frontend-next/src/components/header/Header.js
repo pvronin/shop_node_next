@@ -3,18 +3,18 @@ import Link from 'next/link';
 import HeaderCart from './HeaderCart';
 import HeaderUser from './HeaderUser';
 import MobileMenuButton from './MobileMenuButton';
-import { HiOutlineHome } from 'react-icons/hi';
 import NavbarLinks from './NavbarLinks';
+import Logo from '../Logo';
 
 export default function Header() {
 
     return (
         <header className=" bg-white/80 backdrop-blur-md sticky top-0 left-0 right-0 z-50 border-b border-gray-100">
-
             <div className="mx-auto px-4 sm:p-6 flex justify-between h-16 items-center">
                 {/* لوگو */}
                 <div className="flex-shrink-0 flex items-center">
-                    <Link href="/" className="text-2xl font-black text-emerald-600 tracking-tighter">
+                    <Logo width={65} height={65} className='-mt-2.5' />
+                    <Link href="/" className="text-2xl font-black text-emerald-600 -mb-1">
                         NEXT<span className="text-gray-900">SHOP</span>
                     </Link>
                 </div>

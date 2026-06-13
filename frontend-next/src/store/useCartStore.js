@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { toast } from "sonner";
 
 export const useCartStore = create(
     persist(
@@ -17,8 +18,8 @@ export const useCartStore = create(
                         cart: cart.map((item) =>
                             item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
                         ),
-
                     });
+                    toast.success("محصول به سبد اضافه شد")
                 } else {
                     // اگر محصول جدید بود
                     set({ cart: [...cart, { ...product, quantity: quantity }] });

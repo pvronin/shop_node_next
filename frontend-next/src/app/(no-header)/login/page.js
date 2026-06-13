@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -14,8 +14,16 @@ export default function LoginPage() {
 
     const { login } = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
 
 
+
+    useEffect(() => {
+        if (searchParams.get("registered") === "true") {
+            toast.success("ثبت‌نام شما با موفقیت انجام شد. حالا می‌توانید وارد شوید.");
+            router.replace("/login");
+        }
+    }, [searchParams, router]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

@@ -6,6 +6,7 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { FiLock, FiEye, FiEyeOff, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import GetPasswordStrength from '@/utils/GetPasswordStrength';
+import { toast } from 'sonner';
 
 const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API;
 
@@ -101,6 +102,10 @@ export default function ChangePasswordPage() {
             );
 
             if (response.data.success) {
+                toast.success(<div>
+                    <p>رمز عبور با موفقیت  تغییر کرد</p>
+                    <small>درحال انتقال به صفحه ورود</small>
+                </div>)
                 setMessage({
                     type: 'success',
                     text: 'رمز عبور با موفقیت تغییر کرد. لطفاً دوباره وارد شوید.'
@@ -124,6 +129,7 @@ export default function ChangePasswordPage() {
                 type: 'error',
                 text: err.response?.data?.message || 'خطا در تغییر رمز عبور'
             });
+            toast.error("خطا در تغییر رمز")
         } finally {
             setLoading(false);
         }

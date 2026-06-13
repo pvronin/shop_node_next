@@ -20,6 +20,7 @@ import {
     FiPlus
 } from 'react-icons/fi';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API;
 
@@ -140,14 +141,14 @@ export default function DashboardPage() {
 
             if (response.data.success) {
                 // آپدیت اطلاعات کاربر
+                toast.success("پروفایل بروز رسانی شد")
                 const updatedUser = { ...user, ...updatedFields };
                 setUser(updatedUser);
                 setIsEditing(false);
-                alert('پروفایل با موفقیت به‌روزرسانی شد');
             }
         } catch (err) {
-            console.error('Error updating profile:', err);
-            alert(err.response?.data?.message || 'خطا در به‌روزرسانی پروفایل');
+            console.error('Error updating profile:', err ,err.response?.data?.message);
+            toast.error("خطا در بروزرسانی پروفایل")
         } finally {
             setUpdating(false);
         }
@@ -202,10 +203,10 @@ export default function DashboardPage() {
                 addresses: prev.addresses.filter(addr => addr.id !== addressId)
             }));
 
-            alert('آدرس با موفقیت حذف شد');
+            toast.success("آدرس با موفقیت حذف شد")
         } catch (err) {
             console.error('Error deleting address:', err);
-            alert('خطا در حذف آدرس');
+            toast.error("خطا در حذف آدرس")
         }
     };
 
@@ -225,10 +226,10 @@ export default function DashboardPage() {
                 }))
             }));
 
-            alert('آدرس پیش‌فرض با موفقیت تغییر کرد');
+            toast.success("آدرس پیشفرض تغییر کرد")
         } catch (err) {
             console.error('Error setting default address:', err);
-            alert('خطا در تنظیم آدرس پیش‌فرض');
+            toast.error("خطا در تنظیم آدرس پیشفرض")
         }
     };
 

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import GetPasswordStrength from "@/utils/GetPasswordStrength";
+import { toast } from "sonner";
 
 const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API;
 
@@ -38,33 +39,37 @@ export default function RegisterPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // اعتبارسنجی قوانین
         if (!rules) {
-            setError("لطفاً قوانین و مقررات را بپذیرید");
+            const msg = "لطفاً قوانین و مقررات را بپذیرید";
+            setError(msg);
+            toast.error(msg);
             return;
         }
 
-        // ✅ اعتبارسنجی رمز عبور
         if (formData.password.length < 8) {
-            setError("رمز عبور باید حداقل ۸ کاراکتر باشد");
+            const msg = "رمز عبور باید حداقل ۸ کاراکتر باشد";
+            setError(msg);
+            toast.error(msg);
             return;
         }
 
         if (passwordStrength.strength < 3) {
-            setError("رمز عبور باید شامل حروف کوچک، بزرگ و عدد و حروف خاص باشد");
+            const msg = "رمز عبور باید شامل حروف کوچک، بزرگ، عدد و کاراکتر خاص باشد";
+            setError(msg);
+            toast.error(msg);
             return;
         }
 
-        // ✅ بررسی تطابق رمزها
         if (!doPasswordsMatch) {
-            setError("رمز عبور و تکرار آن مطابقت ندارند");
+            const msg = "رمز عبور و تکرار آن مطابقت ندارند";
+            setError(msg);
+            toast.error(msg);
             return;
         }
 
         setIsLoading(true);
         setError("");
 
-        // حذف confirmPassword قبل از ارسال به سرور
         const { confirmPassword, ...dataToSend } = formData;
 
         try {
@@ -77,21 +82,21 @@ export default function RegisterPage() {
             const data = await res.json();
 
             if (res.ok) {
+                // هدایت به صفحه لاگین همراه با کوئری استرینگ
                 router.push("/login?registered=true");
             } else {
-                // نمایش خطاهای مختلف از backend
-                if (data.username) {
-                    setError(`نام کاربری: ${data.username[0]}`);
-                } else if (data.email) {
-                    setError(`ایمیل: ${data.email[0]}`);
-                } else if (data.password) {
-                    setError(`رمز عبور: ${data.password[0]}`);
-                } else {
-                    setError("خطایی در ثبت‌نام رخ داد.");
-                }
+                let errorMsg = "خطایی در ثبت‌نام رخ داد.";
+                if (data.username) errorMsg = `نام کاربری: ${data.username[0]}`;
+                else if (data.email) errorMsg = `ایمیل: ${data.email[0]}`;
+                else if (data.password) errorMsg = `رمز عبور: ${data.password[0]}`;
+
+                setError(errorMsg);
+                toast.error(errorMsg);
             }
         } catch (err) {
-            setError("اتصال به سرور برقرار نشد.");
+            const connError = "اتصال به سرور برقرار نشد.";
+            setError(connError);
+            toast.error(connError);
         } finally {
             setIsLoading(false);
         }
@@ -304,7 +309,7 @@ export default function RegisterPage() {
 
                         {/* دکمه ثبت‌نام */}
                         <button
-                            disabled={isLoading || !rules || !doPasswordsMatch || (formData.password && !isPasswordValid)}
+                            disabled={isLoading || !rules || !doPasswordsMatch || (formData.password && !isPasswordValid) || !formData.password}
                             className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-4 rounded-xl font-bold hover:shadow-lg hover:shadow-emerald-200/50 hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 mt-2"
                         >
                             {isLoading ? (

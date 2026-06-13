@@ -8,7 +8,6 @@ export default function AddToCartSection({ product }) {
 
     const handleAdd = () => {
         addToCart(product, quantity);
-        alert(`${quantity} عدد ${product.title} به سبد خرید اضافه شد.`);
     };
 
     return (

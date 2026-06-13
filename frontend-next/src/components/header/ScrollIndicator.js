@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 
-const ScrollIndicator = ({ selector, ScrollToTop = false, PositionClasses = "fixed bottom-1 left-3", heightwidth = 11 }) => {
+const ScrollIndicator = ({ selector, ScrollToTop = false, PositionClasses = "fixed bottom-1 left-3", heightwidth = 12 }) => {
     const [hasMore, setHasMore] = useState(false);
     const containerRef = useRef(null);
 

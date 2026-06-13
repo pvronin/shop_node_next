@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from "react"
-import { FaSearch } from "react-icons/fa";
+import { FaCheck, FaSearch } from "react-icons/fa";
 import { FaCommentMedical, FaRegCommentDots } from "react-icons/fa6";
+import { IoClose } from "react-icons/io5";
 import { MdOutlineDoNotDisturb } from "react-icons/md";
 import { TfiWrite } from "react-icons/tfi";
+import { toast } from "sonner";
 
 const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API;
 
@@ -32,21 +34,25 @@ const AddProductComment = ({ productId, onCommentSubmitted }) => {
 
         // اعتبارسنجی
         if (rating === 0) {
+            toast.error("لطفاً امتیاز خود را وارد کنید")
             setError('لطفاً امتیاز خود را انتخاب کنید')
             return
         }
 
         if (!comment.trim()) {
+            toast.error("لطفاً نظر خود را بنویسید")
             setError('لطفاً نظر خود را بنویسید')
             return
         }
 
         if (comment.length < 5) {
+            toast.error("نظر شما باید حداقل ۵ کاراکتر باشد")
             setError('نظر شما باید حداقل ۵ کاراکتر باشد')
             return
         }
 
         if (comment.length > 1000) {
+            toast.error("نظر شما نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد")
             setError('نظر شما نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد')
             return
         }
@@ -79,6 +85,7 @@ const AddProductComment = ({ productId, onCommentSubmitted }) => {
             const data = await response.json()
 
             if (data.success) {
+                toast.success("نظر شما با موفقیت ثبت شد")
                 setSuccess('نظر شما با موفقیت ثبت شد')
                 setComment('')
                 setRating(0)
@@ -88,16 +95,20 @@ const AddProductComment = ({ productId, onCommentSubmitted }) => {
                     onCommentSubmitted(data.comment)
                 }
                 // پاک کردن پیام موفقیت بعد از ۳ ثانیه
-                setTimeout(() => setSuccess(''), 3000)
+                setTimeout(() => setSuccess(''), 4000)
             } else {
                 // اگر خطای 401 (Unauthorized) بود
+
                 if (response.status === 401) {
+                    toast.error("نشست شما منقضی شده است. لطفاً مجدداً وارد شوید")
                     setError('نشست شما منقضی شده است. لطفاً مجدداً وارد شوید')
                 } else {
+                    toast.error(data.message || 'خطا در ثبت نظر')
                     setError(data.message || 'خطا در ثبت نظر')
                 }
             }
         } catch (err) {
+            toast.error("خطا در ارتباط با سرور")
             console.error('Error submitting comment:', err)
             setError('خطا در ارتباط با سرور')
         } finally {
@@ -186,7 +197,7 @@ const AddProductComment = ({ productId, onCommentSubmitted }) => {
                 {error && (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                         <p className="text-sm text-red-600 flex items-center gap-2">
-                            <span>❌</span>
+                            <span><IoClose size={24} /></span>
                             <span>{error}</span>
                         </p>
                     </div>
@@ -196,7 +207,7 @@ const AddProductComment = ({ productId, onCommentSubmitted }) => {
                 {success && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                         <p className="text-sm text-green-600 flex items-center gap-2">
-                            <span>✅</span>
+                            <span><FaCheck size={24} /></span>
                             <span>{success}</span>
                         </p>
                     </div>
