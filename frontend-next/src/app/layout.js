@@ -26,7 +26,7 @@ export default function RootLayout({ children }) {
             <body className="antialiased font-sans">
                 <Toaster richColors position="top-center" theme="dark" toastOptions={{ style: { fontFamily: "var(--font-vazir)", }, }} />
                 <AuthProvider>{children}</AuthProvider>
-                <ScrollIndicator selector="window" ScrollToTop={true} PositionClasses="fixed bottom-6 right-10" />
+                <ScrollIndicator selector="window" ScrollToTop={true} PositionClasses="fixed bottom-2 right-0 md:bottom-6 md:right-10 " />
             </body>
         </html>
     );

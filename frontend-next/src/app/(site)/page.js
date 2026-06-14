@@ -5,10 +5,9 @@ import AnimationLottieShop from "@/components/AnimationLottieShop";
 import ProductsSectionSlider from "@/components/ProductsSectionSlider";
 import discount_banner2 from "@/assets/img/discount_banner2.png";
 import GetProducts from "@/utils/GetProducts";
-import Alert from "@/components/Alert";
 import Toustcomponent from "@/components/Toustcomponent";
+import MotionWrapper from "@/components/MotionWrapper";
 
-// ✅ فقط دومی رو لایزالود کن (چون پایین صفحه است)
 const LazyProductsSection = dynamic(
     () => import("@/components/ProductsSectionSlider"),
     {
@@ -17,7 +16,7 @@ const LazyProductsSection = dynamic(
                 <div className="h-96 bg-gray-100 rounded-xl animate-pulse" />
             </div>
         ),
-        ssr: true, // خوب هست
+        ssr: true,
     }
 );
 
@@ -35,13 +34,12 @@ export async function generateMetadata() {
 export default async function HomePage() {
     const data = await GetProducts("page=1");
     const products = data.products.slice(0, 8);
+
     return (
         <div>
-            {
-                // <Alert message={"به علت تستی بودن سایت ممکن است بعضی مشکلات باشد که مربوط به این است که روی سرور واقعی نیست یا تصاویر کالا ها وابسته ای پی ای های خارجی هستند و نیاز به ویپی ان ممکن است داشته باشن. همچنین به علت در نظر گرفتن نیاز های سئو در نکست خیلی دستم بسته بود و سعی کردم سئو شدن و سرور ساید موندن اکثر صفحاتو کامپوننت هارو رعایت کنم."} />
-                <Toustcomponent />
-            }
-            {/* Hero Section - بدون تغییر */}
+            <Toustcomponent />
+
+
             <section className="min-h-screen relative flex flex-col-reverse md:flex-row items-center gap-10 -mt-10 text-white pb-22 px-6 md:p-24 text-center overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600">
                     <div className="absolute inset-0 opacity-20">
@@ -74,29 +72,37 @@ export default async function HomePage() {
                 </div>
             </section>
 
-            {/* بخش اول - عادی (نیازی به لایزالود نیست چون بالاست) */}
-            <ProductsSectionSlider
-                title="جدیدترین محصولات"
-                products={products}
-            />
+            {/* جدیدترین محصولات */}
+            <MotionWrapper >
+                <ProductsSectionSlider
+                    title="جدیدترین محصولات"
+                    products={products}
+                />
+            </MotionWrapper>
 
             {/* بنر تخفیف */}
-            <section className="w-full">
-                <Link href="shop/discounted">
-                    <Image
-                        className="w-full"
-                        src={discount_banner2}
-                        alt="discount_banner"
-                        priority={false}
-                    />
-                </Link>
-            </section>
+            <MotionWrapper >
+                <section className="w-full">
+                    <Link href="shop/discounted">
+                        <Image
+                            className="w-full"
+                            src={discount_banner2}
+                            alt="بنر تخفیف ویژه فروشگاه"
+                            priority={false}
+                            width={1920}
+                            height={400}
+                        />
+                    </Link>
+                </section>
+            </MotionWrapper>
 
-            {/* ✅ بخش دوم - لایزالود (چون پایین صفحه است) */}
-            <LazyProductsSection
-                title="پربازدیدترین محصولات"  // ← رفع شد: "1 جدیدترین محصولات"
-                products={products}
-            />
+            {/* پربازدیدترین محصولات */}
+            <MotionWrapper  >
+                <LazyProductsSection
+                    title="پربازدیدترین محصولات"
+                    products={products}
+                />
+            </MotionWrapper>
         </div>
     );
 }

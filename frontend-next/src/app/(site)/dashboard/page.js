@@ -21,12 +21,13 @@ import {
 } from 'react-icons/fi';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
 
 const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API;
 
-
 export default function DashboardPage() {
-    const [user, setUser] = useState(null);
+    // اصلاح باگ تداخل: تغییر نام استیت محلی از user به profile برای جلوگیری از تداخل با useAuth
+    const [profile, setProfile] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -39,6 +40,9 @@ export default function DashboardPage() {
         email: '',
         phone: ''
     });
+
+    // استفاده از کانتکست بدون تغییر نام (طبق خواسته شما)
+    const { user, logout } = useAuth();
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -73,7 +77,7 @@ export default function DashboardPage() {
                     addresses: sortedAddresses
                 };
 
-                setUser(userData);
+                setProfile(userData);
 
                 // پر کردن فرم با اطلاعات کاربر
                 setForm({
@@ -113,10 +117,10 @@ export default function DashboardPage() {
         try {
             const token = Cookies.get('access_token');
 
-            // فقط فیلدهایی که تغییر کردن رو بفرست
+            // مقایسه تغییرات بر اساس آبجکت فیلتر شده جدید profile
             const updatedFields = {};
             Object.keys(form).forEach(key => {
-                if (form[key] !== user[key]) {
+                if (form[key] !== profile[key]) {
                     updatedFields[key] = form[key];
                 }
             });
@@ -139,54 +143,32 @@ export default function DashboardPage() {
             );
             console.log(updatedFields);
 
-            if (response.data.success) {
-                // آپدیت اطلاعات کاربر
-                toast.success("پروفایل بروز رسانی شد")
-                const updatedUser = { ...user, ...updatedFields };
-                setUser(updatedUser);
+            // اصلاح شرط موفقیت برای سازگاری کامل با رفتارهای استاندارد کدهای بک‌اند (HTTP 200 یا وجود ساختار موفقیت)
+            if (response.status === 200 || response.data.success) {
+                toast.success("پروفایل بروز رسانی شد");
+                const updatedProfile = { ...profile, ...updatedFields };
+                setProfile(updatedProfile);
                 setIsEditing(false);
             }
         } catch (err) {
-            console.error('Error updating profile:', err ,err.response?.data?.message);
-            toast.error("خطا در بروزرسانی پروفایل")
+            console.error('Error updating profile:', err, err.response?.data?.message);
+            toast.error("خطا در بروزرسانی پروفایل");
         } finally {
             setUpdating(false);
         }
     };
 
     const handleCancelEdit = () => {
-        // برگردوندن فرم به مقادیر اصلی
+        // برگردوندن فرم به مقادیر اصلی با کمک گرفتن از دیتای تفکیک شده profile
         setForm({
-            first_name: user?.first_name || '',
-            last_name: user?.last_name || '',
-            username: user?.username || '',
-            email: user?.email || '',
-            phone: user?.phone || ''
+            first_name: profile?.first_name || '',
+            last_name: profile?.last_name || '',
+            username: profile?.username || '',
+            email: profile?.email || '',
+            phone: profile?.phone || ''
         });
         setIsEditing(false);
     };
-
-    // const handleVerifyEmail = async () => {
-    //     setSendingVerification(true);
-    //     try {
-    //         const token = Cookies.get('access_token');
-    //         await axios.post(
-    //             'http://127.0.0.1:8000/api/users/me/verify-email/send',
-    //             {},
-    //             {
-    //                 headers: {
-    //                     'Authorization': `Bearer ${token}`
-    //                 }
-    //             }
-    //         );
-    //         alert('ایمیل تایید مجدداً ارسال شد');
-    //     } catch (err) {
-    //         console.error('Error sending verification:', err);
-    //         alert('خطا در ارسال ایمیل تایید');
-    //     } finally {
-    //         setSendingVerification(false);
-    //     }
-    // };
 
     const handleDeleteAddress = async (addressId) => {
         if (!confirm('آیا از حذف این آدرس اطمینان دارید؟')) return;
@@ -197,16 +179,16 @@ export default function DashboardPage() {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
-            // حذف آدرس از state
-            setUser(prev => ({
+            // حذف آدرس از استیت محلی جدید
+            setProfile(prev => ({
                 ...prev,
                 addresses: prev.addresses.filter(addr => addr.id !== addressId)
             }));
 
-            toast.success("آدرس با موفقیت حذف شد")
+            toast.success("آدرس با موفقیت حذف شد");
         } catch (err) {
             console.error('Error deleting address:', err);
-            toast.error("خطا در حذف آدرس")
+            toast.error("خطا در حذف آدرس");
         }
     };
 
@@ -217,8 +199,8 @@ export default function DashboardPage() {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
-            // آپدیت state
-            setUser(prev => ({
+            // آپدیت استیت محلی جدید
+            setProfile(prev => ({
                 ...prev,
                 addresses: prev.addresses.map(addr => ({
                     ...addr,
@@ -226,10 +208,10 @@ export default function DashboardPage() {
                 }))
             }));
 
-            toast.success("آدرس پیشفرض تغییر کرد")
+            toast.success("آدرس پیشفرض تغییر کرد");
         } catch (err) {
             console.error('Error setting default address:', err);
-            toast.error("خطا در تنظیم آدرس پیشفرض")
+            toast.error("خطا در تنظیم آدرس پیشفرض");
         }
     };
 
@@ -291,50 +273,71 @@ export default function DashboardPage() {
             {/* کارت اصلی پروفایل */}
             <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
                 {/* بخش بالایی با گرادینت */}
-                <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 px-8 py-10">
-                    <div className="flex items-center gap-6">
-                        {/* آواتار بزرگ */}
-                        <div className="relative">
-                            <div className="w-24 h-24 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
-                                <span className="text-3xl font-bold text-white">
-                                    {user?.first_name?.[0]}{user?.last_name?.[0] || 'U'}
+                <div className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-indigo-500 to-blue-700 px-6 py-8 md:px-10 md:py-12 rounded-3xl shadow-xl">
+                    <div className="absolute -top-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+
+                    <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-stretch gap-6 text-white">
+
+                        {/* بخش آواتار و نشان نقش */}
+                        <div className="flex flex-col items-center gap-3 shrink-0">
+                            <div className="w-24 h-24 bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center shadow-lg transition-transform hover:scale-105">
+                                <span className="text-3xl font-extrabold tracking-wider drop-shadow-sm text-white">
+                                    {profile?.first_name?.[0] || ''}{profile?.last_name?.[0] || 'U'}
                                 </span>
+                                <div className="absolute -bottom-1 -right-1 bg-emerald-500 w-5 h-5 rounded-full border-4 border-indigo-700 shadow-sm animate-pulse"></div>
                             </div>
-                            <div className="absolute -bottom-2 -right-2 bg-green-500 w-6 h-6 rounded-full border-4 border-white"></div>
+
+                            <span className="bg-white/10 backdrop-blur-sm px-4 py-1 rounded-full text-xs font-semibold tracking-wide border border-white/10">
+                                {profile?.role === 'admin' ? 'مدیر سیستم' : 'کاربر عادی'}
+                            </span>
                         </div>
 
-                        {/* نام و نقش - در حالت ویرایش یا نمایش */}
-                        <div className="flex-1 text-white flex flex-col justify-between gap-3">
-                            {isEditing ? (
-                                <div className="flex gap-3">
-                                    <input
-                                        type="text"
-                                        name="first_name"
-                                        value={form.first_name}
-                                        onChange={handleInputChange}
-                                        placeholder="نام"
-                                        className="bg-white/20 backdrop-blur border border-white/30 rounded-xl px-4 py-2 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white"
-                                    />
-                                    <input
-                                        type="text"
-                                        name="last_name"
-                                        value={form.last_name}
-                                        onChange={handleInputChange}
-                                        placeholder="نام خانوادگی"
-                                        className="bg-white/20 backdrop-blur border border-white/30 rounded-xl px-4 py-2 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white"
-                                    />
+                        {/* بخش اطلاعات متنی و فرم‌ها */}
+                        <div className="flex-1 w-full flex flex-col justify-between py-1 gap-4">
+                            <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4 w-full">
+
+                                {/* بخش نام و فامیل (حالت نمایش / ویرایش) */}
+                                <div className="flex-1 w-full">
+                                    {isEditing ? (
+                                        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+                                            <input
+                                                type="text"
+                                                name="first_name"
+                                                value={form.first_name}
+                                                onChange={handleInputChange}
+                                                placeholder="نام"
+                                                className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-white/40 focus:bg-white/15 transition-all"
+                                            />
+                                            <input
+                                                type="text"
+                                                name="last_name"
+                                                value={form.last_name}
+                                                onChange={handleInputChange}
+                                                placeholder="نام خانوادگی"
+                                                className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-white/40 focus:bg-white/15 transition-all"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <h2 className="text-2xl md:text-3xl font-black tracking-tight text-center sm:text-right drop-shadow-sm mt-2">
+                                            {profile?.first_name ? `${profile.first_name} ${profile.last_name}` : 'کاربر مهمان'}
+                                        </h2>
+                                    )}
                                 </div>
-                            ) : (
-                                <h2 className="text-3xl font-bold">
-                                    {user?.first_name} {user?.last_name}
-                                </h2>
-                            )}
-                            <div className="flex items-center gap-3">
-                                <span className="bg-white/20 backdrop-blur px-4 py-1.5 rounded-full text-sm font-medium">
-                                    {user?.role === 'admin' ? 'مدیر سیستم' : 'کاربر عادی'}
-                                </span>
+
+
+                                <button
+                                    onClick={logout}
+                                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-bold px-7 py-2.5 rounded-xl shadow-lg shadow-red-900/20 border border-red-400/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer text-sm"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                    </svg>
+                                    خروج از حساب
+                                </button>
+
                             </div>
                         </div>
+
                     </div>
                 </div>
 
@@ -342,19 +345,19 @@ export default function DashboardPage() {
                 <div className="p-8">
                     {/* وضعیت ایمیل - بخش ویژه */}
                     <div className="mb-8">
-                        <div className={`rounded-2xl p-6 ${user?.is_verified
+                        <div className={`rounded-2xl p-6 ${profile?.is_verified
                             ? 'bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200'
                             : 'bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200'}`}>
                             <div className="flex items-center justify-between flex-wrap gap-4">
                                 <div className="flex items-start gap-4">
-                                    <div className={`p-3 rounded-xl ${user?.is_verified ? 'bg-green-200' : 'bg-amber-200'}`}>
-                                        <FiMail className={`w-6 h-6 ${user?.is_verified ? 'text-green-700' : 'text-amber-700'}`} />
+                                    <div className={`p-3 rounded-xl ${profile?.is_verified ? 'bg-green-200' : 'bg-amber-200'}`}>
+                                        <FiMail className={`w-6 h-6 ${profile?.is_verified ? 'text-green-700' : 'text-amber-700'}`} />
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-gray-900 mb-1">وضعیت ایمیل</h3>
-                                        <p className="text-sm md:text-base text-gray-600">{user?.email}</p>
+                                        <p className="text-sm md:text-base text-gray-600">{profile?.email}</p>
                                         <div className="flex items-center gap-2 mt-2">
-                                            {user?.is_verified ? (
+                                            {profile?.is_verified ? (
                                                 <>
                                                     <FiCheckCircle className="w-5 h-5 text-green-600" />
                                                     <span className="text-green-700 font-medium">تایید شده</span>
@@ -369,9 +372,8 @@ export default function DashboardPage() {
                                     </div>
                                 </div>
 
-                                {!user?.is_verified && (
+                                {!profile?.is_verified && (
                                     <button
-                                        // onClick={handleVerifyEmail}
                                         disabled={sendingVerification}
                                         className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-white px-6 py-3 rounded-xl font-medium hover:from-amber-600 hover:to-yellow-700 transition-all shadow-lg shadow-amber-200 disabled:opacity-50"
                                     >
@@ -391,7 +393,7 @@ export default function DashboardPage() {
                             label="نام کاربری"
                             name="username"
                             value={form.username}
-                            userValue={user?.username}
+                            userValue={profile?.username}
                             isEditing={isEditing}
                             onChange={handleInputChange}
                             iconBgColor="bg-blue-50"
@@ -404,12 +406,12 @@ export default function DashboardPage() {
                             label="ایمیل"
                             name="email"
                             value={form.email}
-                            userValue={user?.email}
+                            userValue={profile?.email}
                             isEditing={isEditing}
                             onChange={handleInputChange}
                             iconBgColor="bg-purple-50"
                             iconColor="text-purple-600"
-                            badge={!user?.is_verified ? {
+                            badge={!profile?.is_verified ? {
                                 text: 'تایید نشده',
                                 color: 'amber'
                             } : null}
@@ -421,7 +423,7 @@ export default function DashboardPage() {
                             label="شماره موبایل"
                             name="phone"
                             value={form.phone}
-                            userValue={user?.phone}
+                            userValue={profile?.phone}
                             isEditing={isEditing}
                             onChange={handleInputChange}
                             iconBgColor="bg-green-50"
@@ -437,7 +439,7 @@ export default function DashboardPage() {
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-sm text-gray-500 mb-1">نقش کاربری</p>
-                                    <p className="font-bold text-gray-900">{user?.role === 'admin' ? 'مدیر' : 'کاربر عادی'}</p>
+                                    <p className="font-bold text-gray-900">{profile?.role === 'admin' ? 'مدیر' : 'کاربر عادی'}</p>
                                 </div>
                             </div>
                         </div>
@@ -451,7 +453,7 @@ export default function DashboardPage() {
                                 <div className="flex-1">
                                     <p className="text-sm text-gray-500 mb-1">تاریخ عضویت</p>
                                     <p className="font-bold text-gray-900">
-                                        {user?.created_at ? new Date(user.created_at).toLocaleDateString('fa-IR') : '-'}
+                                        {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('fa-IR') : '-'}
                                     </p>
                                 </div>
                             </div>
@@ -467,9 +469,6 @@ export default function DashboardPage() {
                                     آدرس‌های من
                                 </h3>
                                 <div className="flex items-center gap-3">
-                                    {/* <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-                                        {user?.addresses?.length || 0} آدرس
-                                    </span> */}
                                     <Link
                                         href="/dashboard/newaddress"
                                         className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-all"
@@ -480,9 +479,9 @@ export default function DashboardPage() {
                                 </div>
                             </div>
 
-                            {user?.addresses && user.addresses.length > 0 ? (
+                            {profile?.addresses && profile.addresses.length > 0 ? (
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                    {user.addresses.map((address) => (
+                                    {profile.addresses.map((address) => (
                                         <AddressCard
                                             key={address.id}
                                             address={address}
@@ -576,8 +575,7 @@ function InfoField({ icon, label, name, value, userValue, isEditing, onChange, i
                         <div className="flex items-center justify-between">
                             <p className="font-bold text-gray-900">{userValue || placeholder || '—'}</p>
                             {badge && (
-                                <span className={`text-xs px-2 py-1 rounded-full font-medium ${badge.color === 'amber' ? 'bg-amber-100 text-amber-700' : ''
-                                    }`}>
+                                <span className={`text-xs px-2 py-1 rounded-full font-medium ${badge.color === 'amber' ? 'bg-amber-100 text-amber-700' : ''}`}>
                                     {badge.text}
                                 </span>
                             )}
@@ -591,9 +589,8 @@ function InfoField({ icon, label, name, value, userValue, isEditing, onChange, i
 
 // ========== کامپوننت کارت آدرس ==========
 function AddressCard({ address, onDelete, onSetDefault }) {
-
     return (
-        <div className={`bg-white rounded-2xl p-5 border-2 border-blue-50 transition-all relative group`}>
+        <div className="bg-white rounded-2xl p-5 border-2 border-blue-50 transition-all relative group">
             {/* نشان پیش‌فرض */}
             {address.is_default && (
                 <div className="absolute -top-2 -right-2">
@@ -605,7 +602,6 @@ function AddressCard({ address, onDelete, onSetDefault }) {
 
             {/* هدر کارت */}
             <div className="flex items-center justify-between mb-3">
-
                 {/* دکمه‌های عملیات */}
                 <div className="flex gap-1">
                     <Link
@@ -648,8 +644,6 @@ function AddressCard({ address, onDelete, onSetDefault }) {
                             {address.postal_code}
                         </span>
                     </div>
-
-
                 </div>
             </div>
         </div>

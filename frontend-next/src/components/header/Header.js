@@ -13,8 +13,8 @@ export default function Header() {
             <div className="mx-auto px-4 sm:p-6 flex justify-between h-16 items-center">
                 {/* لوگو */}
                 <div className="flex-shrink-0 flex items-center">
-                    <Logo width={65} height={65} className='-mt-2.5' />
-                    <Link href="/" className="text-2xl font-black text-emerald-600 -mb-1">
+                    <Logo width={65} height={65} className='-mt-2.5 w-12 md:w-16' />
+                    <Link href="/" className="text-xl md:text-2xl font-black text-emerald-600 -mb-1">
                         NEXT<span className="text-gray-900">SHOP</span>
                     </Link>
                 </div>
