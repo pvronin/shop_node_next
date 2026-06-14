@@ -6,6 +6,8 @@ import HeartIcon from "./HeartIcon";
 import CompareIcon from "./CompareIcon";
 import Image from "next/image";
 import { memo } from "react";
+import AddToFavoriteBtn from "./AddToFavoriteBtn";
+
 const RatingStars = dynamic(() => import("./RatingStars"), {
     ssr: true, // SSR فعال باشه برای SEO
     loading: () => <div className="flex gap-1">
@@ -14,6 +16,7 @@ const RatingStars = dynamic(() => import("./RatingStars"), {
         ))}
     </div>
 });
+
 
 const ProductCard = ({ item }) => {
     const stockStatus = (() => {
@@ -37,9 +40,7 @@ const ProductCard = ({ item }) => {
             )}
 
             <div className={"absolute top-4 right-4 z-10 flex flex-col gap-2 transition-all duration-300 opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0"}>
-                <button className="w-8 h-8 md:w-9 md:h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-110 transition-all hover:bg-white p-1.5 md:p-2">
-                    <HeartIcon />
-                </button>
+                <AddToFavoriteBtn product={item} />
                 <button className="w-8 h-8 md:w-9 md:h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-110 transition-all hover:bg-white p-1.5 md:p-2">
                     <CompareIcon />
                 </button>

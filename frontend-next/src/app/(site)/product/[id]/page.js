@@ -1,5 +1,6 @@
 import AddProductComment from "@/components/AddProductComment";
 import AddToCartSection from "@/components/AddToCartSection";
+import AddToFavoriteBtn from "@/components/AddToFavoriteBtn";
 import RatingStars from "@/components/RatingStars";
 import GetProduct from "@/utils/GetProduct";
 import dynamic from "next/dynamic";
@@ -70,7 +71,10 @@ export default async function ProductDetailPage({ params }) {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
                 {/* گالری تصاویر */}
                 <div className="space-y-4">
-                    <div className="relative h-[500px] w-full rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 p-8">
+                    <div className="relative h-[500px] w-full rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 p-6">
+                        <div className="absolute top-5 right-5">
+                            <AddToFavoriteBtn product={product} />
+                        </div>
                         {/* <Image
                             src={product.thumbnail || "/img/altproduct.jpg"}
                             alt={product.title}

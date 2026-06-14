@@ -14,7 +14,7 @@ const app = express();
 // Middlewares
 // تنظیمات کامل CORS برای پشتیبانی از credentials
 app.use(cors({
-    origin: 'http://localhost:3000',  // آدرس فرانت‌اند
+    origin: '*',  // آدرس فرانت‌اند
     credentials: true,                // اجازه ارسال کوکی
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']

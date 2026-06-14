@@ -24,7 +24,7 @@ export default function RootLayout({ children }) {
     return (
         <html lang="fa" dir="rtl" className={vazir.variable}>
             <body className="antialiased font-sans">
-                <Toaster richColors position="top-center" closeButton theme="dark" toastOptions={{ style: { fontFamily: "var(--font-vazir)", }, }} />
+                <Toaster richColors position="top-center" theme="dark" toastOptions={{ style: { fontFamily: "var(--font-vazir)", }, }} />
                 <AuthProvider>{children}</AuthProvider>
                 <ScrollIndicator selector="window" ScrollToTop={true} PositionClasses="fixed bottom-6 right-10" />
             </body>

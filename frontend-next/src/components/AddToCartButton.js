@@ -2,7 +2,7 @@
 
 import { useCartStore } from "@/store/useCartStore";
 import { useCallback, useState } from "react";
-import { toast } from "sonner";
+
 
 export default function AddToCartButton({ item }) {
     const addToCart = useCartStore((state) => state.addToCart);
