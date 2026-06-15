@@ -6,8 +6,9 @@ require('dotenv').config();
 const authRoutes = require('./features/auth/auth.routes');
 const userRoutes = require('./features/user/user.routes');
 const productRoutes = require('./features/product/product.routes');
-const addressRoutes = require('./features/address/address.routes');  // ← اضافه کنید
+const addressRoutes = require('./features/address/address.routes');
 const discountRoutes = require('./features/discount/discount.routes');
+const chatRoutes = require('./features/chat/chat.routes');
 
 const app = express();
 
@@ -25,8 +26,10 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
-app.use('/api/addresses', addressRoutes);  // ← اضافه کنید
+app.use('/api/addresses', addressRoutes);
 app.use('/api/discounts', discountRoutes);
+app.use('/api/chat', chatRoutes);
+
 
 // Health check
 app.get('/', (req, res) => {
