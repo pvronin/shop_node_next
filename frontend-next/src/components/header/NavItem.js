@@ -3,10 +3,10 @@ import Link from "next/link";
 import ScrollIndicator from "./ScrollIndicator";
 
 const NavItem = async ({ href, icon: Icon, label, group }) => {
-   const categories =
-    group === "categories"
-        ? await GetCategories()
-        : [];
+//    const categories =
+//     group === "categories"
+//         ? await GetCategories()
+//         : [];
 
     return (
         <div className="relative group">
