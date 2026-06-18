@@ -24,7 +24,7 @@ export default function LoginPageContent() {
         }
     }, [searchParams, router]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!email.includes("@")) {
             setError("لطفاً یک ایمیل معتبر وارد کنید");
