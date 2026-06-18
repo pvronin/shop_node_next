@@ -1,0 +1,99 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["partialIndexes"]
+  output          = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model discounts {
+  id         Int      @id(map: "discounts_discount_pkey") @default(autoincrement())
+  title      String   @db.VarChar(100)
+  percent    Int
+  start_date DateTime @db.Timestamptz(6)
+  end_date   DateTime @db.Timestamptz(6)
+  is_active  Boolean
+  product_id Int
+  products   products @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "discounts_discount_product_id_fb618410_fk_products_product_id")
+
+  @@index([product_id], map: "discounts_discount_product_id_fb618410")
+}
+
+model productcategories {
+  id       Int        @id(map: "productcategories_category_pkey") @default(autoincrement())
+  name     String     @unique(map: "productcategories_category_name_key") @db.VarChar(100)
+  slug     String     @unique(map: "productcategories_category_slug_key") @db.VarChar(120)
+  products products[]
+
+  @@index([name], map: "productcategories_category_name_8822d12d_like")
+  @@index([slug], map: "productcategories_category_slug_cf095243_like")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model productcomments {
+  id             Int      @id(map: "productcomment_review_pkey") @default(autoincrement())
+  reviewer_name  String   @db.VarChar(255)
+  reviewer_email String   @db.VarChar(254)
+  rating         Int
+  comment        String
+  date           DateTime @db.Timestamptz(6)
+  product_id     Int
+  products       products @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "productcomment_revie_product_id_3b33a816_fk_products_")
+
+  @@index([product_id], map: "productcomment_review_product_id_3b33a816")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model products {
+  id                   Int                @id(map: "products_product_pkey") @default(autoincrement())
+  title                String             @db.VarChar(255)
+  description          String
+  price                Decimal            @db.Decimal(10, 2)
+  thumbnail            String             @db.VarChar(500)
+  stock                Int
+  dimensions           Json
+  meta                 Json
+  rating               Float
+  category_relation_id Int?
+  discounts            discounts[]
+  productcomments      productcomments[]
+  productcategories    productcategories? @relation(fields: [category_relation_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "products_product_category_relation_id_802ba1b2_fk_productca")
+
+  @@index([category_relation_id], map: "products_product_category_relation_id_802ba1b2")
+}
+
+model users {
+  id            Int        @id @default(autoincrement())
+  username      String?    @unique @db.VarChar(50)
+  email         String     @unique @db.VarChar(255)
+  password_hash String     @db.VarChar(255)
+  first_name    String?    @db.VarChar(100)
+  last_name     String?    @db.VarChar(100)
+  phone         String?    @db.VarChar(20)
+  is_verified   Boolean    @default(false)
+  role          String     @default("user") @db.VarChar(30)
+  last_login_at DateTime?  @db.Timestamptz(6)
+  created_at    DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime   @default(now()) @db.Timestamptz(6)
+  addresses     addresses?
+}
+
+model addresses {
+  id           Int      @id @default(autoincrement())
+  user_id      Int      @unique(map: "one_default_address_per_user", where: raw("(is_default = true)"))
+  label        String?  @db.VarChar(100)
+  province     String   @db.VarChar(100)
+  city         String   @db.VarChar(100)
+  postal_code  String   @db.VarChar(20)
+  address_line String
+  is_default   Boolean  @default(false)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @updatedAt @db.Timestamptz(6)
+  user         users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+}

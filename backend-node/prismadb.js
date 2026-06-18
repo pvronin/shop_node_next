@@ -1,7 +1,7 @@
 // index.js یا lib/prisma.js
 require('dotenv').config();   // ← این خط رو اینجا هم اضافه کن (مهم!)
 
-const { PrismaClient } = require('@prisma/client'); // یا import اگر ESM داری
+const { PrismaClient } = require('./src/generated/client');
 const { PrismaPg } = require('@prisma/adapter-pg');
 const { Pool } = require('pg');
 
@@ -11,10 +11,6 @@ const pool = new Pool({ connectionString });
 
 const adapter = new PrismaPg(pool);
 
-const prisma = new PrismaClient({
-  adapter,
-  // می‌تونی log هم اضافه کنی اگر خواستی
-  // log: ['query', 'info', 'warn', 'error']
-});
-
+const prisma = globalThis.prisma || new PrismaClient({adapter});
+if (process.env.NODE_ENV !== 'production') globalThis.prisma = prisma;
 module.exports = prisma; // یا export default prisma;
