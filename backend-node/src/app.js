@@ -14,13 +14,9 @@ const app = express();
 
 // Middlewares
 // تنظیمات کامل CORS برای پشتیبانی از credentials
-// تنظیمات درست CORS
 app.use(cors({
-    origin: [
-        'http://localhost:3000', // فرانت‌لوکال خودت (اگر پورت دیگری است عوضش کن)
-        // 'https://your-frontend-vercel-url.vercel.app' // آدرس نهایی فرانت‌اندم روی ورسل را بعداً اینجا اضافه کن
-    ],
-    credentials: true, // اجازه ارسال کوکی و هدرهای احراز هویت
+    origin: '*',  // آدرس فرانت‌اند
+    credentials: true,                // اجازه ارسال کوکی
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
